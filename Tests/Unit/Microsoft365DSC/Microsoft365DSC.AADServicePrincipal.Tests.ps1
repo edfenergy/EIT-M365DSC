@@ -59,6 +59,11 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                     AlternativeNames          = 'AlternativeName1', 'AlternativeName2'
                     AccountEnabled            = $true
                     AppRoleAssignmentRequired = $false
+                    customSecurityAttributes  = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
                     ErrorUrl                  = ''
                     Homepage                  = 'https://app1.contoso.com'
                     LogoutUrl                 = 'https://app1.contoso.com/logout'
@@ -98,6 +103,11 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                     AlternativeNames          = 'AlternativeName1', 'AlternativeName2'
                     AccountEnabled            = $true
                     AppRoleAssignmentRequired = $false
+                    customSecurityAttributes  = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
                     ErrorUrl                  = ''
                     Homepage                  = 'https://app1.contoso.com'
                     LogoutUrl                 = 'https://app1.contoso.com/logout'
@@ -116,23 +126,27 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name DisplayName -Value 'App1'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AppId                        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
+                        Id                          = '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
+                        DisplayName                  = 'App1'
+                        AlternativeNames             = 'AlternativeName1', 'AlternativeName2'
+                        AccountEnabled               = $true
+                        AppRoleAssignmentRequired    = $false
+                        customSecurityAttributes = @{
+                            Name = "CustomSecurityAttributes"
+                            isArray = $False
+                        }
+                        ErrorUrl                     = ''
+                        Homepage                     = 'https://app1.contoso.com'
+                        LogoutUrl                    = 'https://app1.contoso.com/logout'
+                        PublisherName                = 'Contoso'
+                        ReplyURLs                    = 'https://app1.contoso.com'
+                        SamlMetadataURL              = ''
+                        ServicePrincipalNames        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
+                        ServicePrincipalType         = 'Application'
+                        Tags                         = '{WindowsAzureActiveDirectoryIntegratedApp}'
+                    }
                 }
             }
 
@@ -158,6 +172,11 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                     AlternativeNames          = 'AlternativeName1', 'AlternativeName2'
                     AccountEnabled            = $true
                     AppRoleAssignmentRequired = $false
+                    customSecurityAttributes = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
                     ErrorUrl                  = ''
                     Homepage                  = 'https://app1.contoso.com'
                     LogoutUrl                 = 'https://app1.contoso.com/logout'
@@ -176,23 +195,27 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name DisplayName -Value 'App1'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AppId                        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
+                        Id                          = '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
+                        DisplayName                  = 'App1'
+                        AlternativeNames             = 'AlternativeName1', 'AlternativeName2'
+                        AccountEnabled               = $true
+                        AppRoleAssignmentRequired    = $false
+                        customSecurityAttributes = @{
+                            Name = "CustomSecurityAttributes"
+                            isArray = $False
+                        }
+                        ErrorUrl                     = ''
+                        Homepage                     = 'https://app1.contoso.com'
+                        LogoutUrl                    = 'https://app1.contoso.com/logout'
+                        PublisherName                = 'Contoso'
+                        ReplyURLs                    = 'https://app1.contoso.com'
+                        SamlMetadataURL              = ''
+                        ServicePrincipalNames        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
+                        ServicePrincipalType         = 'Application'
+                        Tags                         = '{WindowsAzureActiveDirectoryIntegratedApp}'
+                    }
                 }
             }
 
@@ -214,6 +237,11 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                     AlternativeNames          = 'AlternativeName1', 'AlternativeName2', 'AlternativeName3' #drift
                     AccountEnabled            = $true
                     AppRoleAssignmentRequired = $false
+                    customSecurityAttributes = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
                     ErrorUrl                  = ''
                     Homepage                  = 'https://app1.contoso.com'
                     LogoutUrl                 = 'https://app1.contoso.com/logout'
@@ -232,22 +260,27 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AppId                        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
+                        Id                          = '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
+                        DisplayName                  = 'App1'
+                        AlternativeNames             = 'AlternativeName1', 'AlternativeName2'
+                        AccountEnabled               = $true
+                        AppRoleAssignmentRequired    = $false
+                        customSecurityAttributes = @{
+                            Name = "CustomSecurityAttributes"
+                            isArray = $False
+                        }
+                        ErrorUrl                     = ''
+                        Homepage                     = 'https://app1.contoso.com'
+                        LogoutUrl                    = 'https://app1.contoso.com/logout'
+                        PublisherName                = 'Contoso'
+                        ReplyURLs                    = 'https://app1.contoso.com'
+                        SamlMetadataURL              = ''
+                        ServicePrincipalNames        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
+                        ServicePrincipalType         = 'Application'
+                        Tags                         = '{WindowsAzureActiveDirectoryIntegratedApp}'
+                    }
                 }
             }
 
@@ -279,23 +312,27 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name DisplayName -Value 'App1'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AppId                        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
+                        Id                          = '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
+                        DisplayName                  = 'App1'
+                        AlternativeNames             = 'AlternativeName1', 'AlternativeName2'
+                        AccountEnabled               = $true
+                        AppRoleAssignmentRequired    = $false
+                        customSecurityAttributes = @{
+                            Name = "CustomSecurityAttributes"
+                            isArray = $False
+                        }
+                        ErrorUrl                     = ''
+                        Homepage                     = 'https://app1.contoso.com'
+                        LogoutUrl                    = 'https://app1.contoso.com/logout'
+                        PublisherName                = 'Contoso'
+                        ReplyURLs                    = 'https://app1.contoso.com'
+                        SamlMetadataURL              = ''
+                        ServicePrincipalNames        = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
+                        ServicePrincipalType         = 'Application'
+                        Tags                         = '{WindowsAzureActiveDirectoryIntegratedApp}'
+                    }
                 }
             }
 

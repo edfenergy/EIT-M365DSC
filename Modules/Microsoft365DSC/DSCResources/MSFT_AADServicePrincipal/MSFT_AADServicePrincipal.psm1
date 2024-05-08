@@ -33,6 +33,10 @@ function Get-TargetResource
         $AppRoleAssignmentRequired,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CustomSecurityAttributes,
+
+        [Parameter()]
         [System.String]
         $ErrorUrl,
 
@@ -197,6 +201,12 @@ function Get-TargetResource
                 }
             }
 
+            $complexCustomSecurityAttributes = @{}
+            if ($complexCustomSecurityAttributes.values.Where({$null -ne $_}).count -eq 0)
+            {
+                $complexCustomSecurityAttributes = $null
+            }
+
             $result = @{
                 AppId                     = $AADServicePrincipal.AppId
                 AppRoleAssignedTo         = $AppRoleAssignedToValues
@@ -205,6 +215,7 @@ function Get-TargetResource
                 AlternativeNames          = $AADServicePrincipal.AlternativeNames
                 AccountEnabled            = [boolean]$AADServicePrincipal.AccountEnabled
                 AppRoleAssignmentRequired = $AADServicePrincipal.AppRoleAssignmentRequired
+                CustomSecurityAttributes  = $complexCustomSecurityAttributes
                 ErrorUrl                  = $AADServicePrincipal.ErrorUrl
                 Homepage                  = $AADServicePrincipal.Homepage
                 LogoutUrl                 = $AADServicePrincipal.LogoutUrl
@@ -272,6 +283,10 @@ function Set-TargetResource
         [Parameter()]
         [System.Boolean]
         $AppRoleAssignmentRequired,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CustomSecurityAttributes,
 
         [Parameter()]
         [System.String]
@@ -532,6 +547,10 @@ function Test-TargetResource
         $AppRoleAssignmentRequired,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CustomSecurityAttributes,
+
+        [Parameter()]
         [System.String]
         $ErrorUrl,
 
@@ -718,6 +737,20 @@ function Export-TargetResource
                 {
                     $Results.AppRoleAssignedTo = Get-M365DSCAzureADServicePrincipalAssignmentAsString -Assignments $Results.AppRoleAssignedTo
                 }
+                if ($null -ne $Results.CustomSecurityAttributes)
+                {
+                    $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                        -ComplexObject $Results.CustomSecurityAttributes `
+                        -CIMInstanceName 'MicrosoftGraphcustomSecurityAttributeValue'
+                    if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                    {
+                        $Results.CustomSecurityAttributes = $complexTypeStringResult
+                    }
+                    else
+                    {
+                        $Results.Remove('CustomSecurityAttributes') | Out-Null
+                    }
+                }
                 $currentDSCBlock = Get-M365DSCExportContentForResource -ResourceName $ResourceName `
                     -ConnectionMode $ConnectionMode `
                     -ModulePath $PSScriptRoot `
@@ -728,6 +761,11 @@ function Export-TargetResource
                     $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock `
                         -ParameterName 'AppRoleAssignedTo'
                 }
+                if ($Results.CustomSecurityAttributes)
+                {
+                    $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "CustomSecurityAttributes" -isCIMArray:$False
+                }
+
                 $dscContent += $currentDSCBlock
                 Save-M365DSCPartialExport -Content $currentDSCBlock `
                     -FileName $Global:PartialExportFileName
