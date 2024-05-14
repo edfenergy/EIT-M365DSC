@@ -201,8 +201,10 @@ function Get-TargetResource
                 }
             }
 
-            $complexCustomSecurityAttributes = @{}
-            if ($complexCustomSecurityAttributes.values.Where({$null -ne $_}).count -eq 0)
+            $ComplexCustomSecurityAttributes = (Get-MgServicePrincipal -ServicePrincipalId $AADServicePrincipal.Id `
+                -Property CustomSecurityAttributes).AdditionalProperties
+
+            if ($ComplexCustomSecurityAttributes.values.Where({$null -ne $_}).count -eq 0)
             {
                 $complexCustomSecurityAttributes = $null
             }
@@ -739,8 +741,9 @@ function Export-TargetResource
                 }
                 if ($null -ne $Results.CustomSecurityAttributes)
                 {
+                    # This code currently known not to be working.
                     $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
-                        -ComplexObject $Results.CustomSecurityAttributes `
+                        -ComplexObject $Results.CustomSecurityAttributes -isArray = $true `
                         -CIMInstanceName 'MicrosoftGraphcustomSecurityAttributeValue'
                     if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
                     {
@@ -763,7 +766,8 @@ function Export-TargetResource
                 }
                 if ($Results.CustomSecurityAttributes)
                 {
-                    $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "CustomSecurityAttributes" -isCIMArray:$False
+                    $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock `
+                        -ParameterName "CustomSecurityAttributes"
                 }
 
                 $dscContent += $currentDSCBlock
