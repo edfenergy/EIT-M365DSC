@@ -4,41 +4,78 @@ function Get-TargetResource
     [OutputType([System.Collections.Hashtable])]
     param
     (
-        [Parameter(Mandatory = $true)]
-        [System.String]
-        $AppId,
+        #region resource generator code
+        [Parameter()]
+        [System.Boolean]
+        $AccountEnabled,
 
         [Parameter()]
         [Microsoft.Management.Infrastructure.CimInstance[]]
-        $AppRoleAssignedTo,
-
-        [Parameter()]
-        [System.String]
-        $ObjectId,
-
-        [Parameter()]
-        [System.String]
-        $DisplayName,
+        $AddIns,
 
         [Parameter()]
         [System.String[]]
         $AlternativeNames,
 
         [Parameter()]
-        [System.Boolean]
-        $AccountEnabled,
+        [System.String]
+        $AppDescription,
+
+        [Parameter()]
+        [System.String]
+        $AppDisplayName,
+
+        [Parameter()]
+        [System.String]
+        $AppId,
+
+        [Parameter()]
+        [System.String]
+        $ApplicationTemplateId,
+
+        [Parameter()]
+        [System.Guid]
+        $AppOwnerOrganizationId,
 
         [Parameter()]
         [System.Boolean]
         $AppRoleAssignmentRequired,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $AppRoles,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CustomSecurityAttributes,
+
+        [Parameter()]
         [System.String]
-        $ErrorUrl,
+        $Description,
+
+        [Parameter()]
+        [System.String]
+        $DisabledByMicrosoftStatus,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $DisplayName,
 
         [Parameter()]
         [System.String]
         $Homepage,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $Info,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $KeyCredentials,
+
+        [Parameter()]
+        [System.String]
+        $LoginUrl,
 
         [Parameter()]
         [System.String]
@@ -46,15 +83,39 @@ function Get-TargetResource
 
         [Parameter()]
         [System.String]
-        $PublisherName,
+        $Notes,
+
+        [Parameter()]
+        [System.String[]]
+        $NotificationEmailAddresses,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $Oauth2PermissionScopes,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $PasswordCredentials,
+
+        [Parameter()]
+        [System.String]
+        $PreferredSingleSignOnMode,
+
+        [Parameter()]
+        [System.String]
+        $PreferredTokenSigningKeyThumbprint,
 
         [Parameter()]
         [System.String[]]
         $ReplyUrls,
 
         [Parameter()]
-        [System.String]
-        $SamlMetadataURL,
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $ResourceSpecificApplicationPermissions,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $SamlSingleSignOnSettings,
 
         [Parameter()]
         [System.String[]]
@@ -65,12 +126,34 @@ function Get-TargetResource
         $ServicePrincipalType,
 
         [Parameter()]
+        [System.String]
+        $SignInAudience,
+
+        [Parameter()]
         [System.String[]]
         $Tags,
 
         [Parameter()]
-        [ValidateSet('Present', 'Absent')]
+        [System.Guid]
+        $TokenEncryptionKeyId,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $VerifiedPublisher,
+
+        [Parameter()]
         [System.String]
+        $DeletedDateTime,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Id,
+
+        #endregion
+
+        [Parameter()]
+        [System.String]
+        [ValidateSet('Absent', 'Present')]
         $Ensure = 'Present',
 
         [Parameter()]
@@ -95,148 +178,283 @@ function Get-TargetResource
 
         [Parameter()]
         [Switch]
-        $ManagedIdentity,
-
-        [Parameter()]
-        [System.String[]]
-        $AccessTokens
+        $ManagedIdentity
     )
 
-    Write-Verbose -Message 'Getting configuration of Azure AD ServicePrincipal'
-    $ConnectionMode = New-M365DSCConnection -Workload 'MicrosoftGraph' `
-        -InboundParameters $PSBoundParameters
-
-    #Ensure the proper dependencies are installed in the current environment.
-    Confirm-M365DSCDependencies
-
-    #region Telemetry
-    $ResourceName = $MyInvocation.MyCommand.ModuleName -replace 'MSFT_', ''
-    $CommandName = $MyInvocation.MyCommand
-    $data = Format-M365DSCTelemetryParameters -ResourceName $ResourceName `
-        -CommandName $CommandName `
-        -Parameters $PSBoundParameters
-    Add-M365DSCTelemetryEvent -Data $data
-    #endregion
-
-    $nullReturn = $PSBoundParameters
-    $nullReturn.Ensure = 'Absent'
     try
     {
-        try
-        {
-            if (-not [System.String]::IsNullOrEmpty($ObjectID))
-            {
-                if ($null -ne $Script:exportedInstances -and $Script:ExportMode)
-                {
-                    $AADServicePrincipal = $Script:exportedInstances | Where-Object -FilterScript {$_.Id -eq $Id}
-                }
-                else
-                {
-                    $AADServicePrincipal = Get-MgServicePrincipal -ServicePrincipalId $ObjectId `
-                        -Expand 'AppRoleAssignedTo' `
-                        -ErrorAction Stop
-                }
-            }
-        }
-        catch
-        {
-            Write-Verbose -Message "Azure AD ServicePrincipal with ObjectID: $($ObjectID) could not be retrieved"
-        }
+        $ConnectionMode = New-M365DSCConnection -Workload 'MicrosoftGraph' `
+            -InboundParameters $PSBoundParameters
 
-        if ($null -eq $AADServicePrincipal)
+        #Ensure the proper dependencies are installed in the current environment.
+        Confirm-M365DSCDependencies
+
+        #region Telemetry
+        $ResourceName = $MyInvocation.MyCommand.ModuleName.Replace('MSFT_', '')
+        $CommandName = $MyInvocation.MyCommand
+        $data = Format-M365DSCTelemetryParameters -ResourceName $ResourceName `
+            -CommandName $CommandName `
+            -Parameters $PSBoundParameters
+        Add-M365DSCTelemetryEvent -Data $data
+        #endregion
+
+        $nullResult = $PSBoundParameters
+        $nullResult.Ensure = 'Absent'
+
+        $getValue = $null
+        #region resource generator code
+        $getValue = Get-MgServicePrincipal -ServicePrincipalId $Id  -ErrorAction SilentlyContinue
+
+        if ($null -eq $getValue)
         {
-            if ($null -ne $Script:exportedInstances -and $Script:ExportMode)
+            Write-Verbose -Message "Could not find an Azure AD Service Principal with Id {$Id}"
+
+            if (-Not [string]::IsNullOrEmpty($DisplayName))
             {
-                $AADServicePrincipal = $Script:exportedInstances | Where-Object -FilterScript {$_.AppId -eq $AppId}
-            }
-            else
-            {
-                $ObjectGuid = [System.Guid]::empty
-                if (-not [System.Guid]::TryParse($AppId, [System.Management.Automation.PSReference]$ObjectGuid))
-                {
-                    $appInstance = Get-MgApplication -Filter "DisplayName eq '$AppId'"
-                    if ($appInstance)
-                    {
-                        $AADServicePrincipal = Get-MgServicePrincipal -Filter "AppID eq '$($appInstance.AppId)'" `
-                                                                    -Expand 'AppRoleAssignedTo'
+                $getValue = Get-MgServicePrincipal `
+                    -Filter "DisplayName eq '$DisplayName'" `
+                    -ErrorAction SilentlyContinue | Where-Object `
+                    -FilterScript { `
+                        $_.AdditionalProperties.'@odata.type' -eq "#microsoft.graph.ServicePrincipal" `
                     }
-                }
-                else
-                {
-                    $AADServicePrincipal = Get-MgServicePrincipal -Filter "AppID eq '$($AppId)'" `
-                                                                -Expand 'AppRoleAssignedTo'
-                }
             }
         }
-        if ($null -eq $AADServicePrincipal)
+        #endregion
+        if ($null -eq $getValue)
         {
-            return $nullReturn
+            Write-Verbose -Message "Could not find an Azure AD Service Principal with DisplayName {$DisplayName}"
+            return $nullResult
         }
-        else
-        {
-            $AppRoleAssignedToValues = @()
-            foreach ($principal in $AADServicePrincipal.AppRoleAssignedTo)
-            {
-                $currentAssignment = @{
-                    PrincipalType = $null
-                    Identity      = $null
-                }
-                if ($principal.PrincipalType -eq 'User')
-                {
-                    $user = Get-MgUser -UserId $principal.PrincipalId
-                    $currentAssignment.PrincipalType = 'User'
-                    $currentAssignment.Identity = $user.UserPrincipalName.Split('@')[0]
-                    $AppRoleAssignedToValues += $currentAssignment
-                }
-                elseif ($principal.PrincipalType -eq 'Group')
-                {
-                    $group = Get-MgGroup -GroupId $principal.PrincipalId
-                    $currentAssignment.PrincipalType = 'Group'
-                    $currentAssignment.Identity = $group.DisplayName
-                    $AppRoleAssignedToValues += $currentAssignment
-                }
-            }
+        $Id = $getValue.Id
+        Write-Verbose -Message "An Azure AD Service Principal with Id {$Id} and DisplayName {$DisplayName} was found."
 
-            $result = @{
-                AppId                     = $AADServicePrincipal.AppId
-                AppRoleAssignedTo         = $AppRoleAssignedToValues
-                ObjectID                  = $AADServicePrincipal.Id
-                DisplayName               = $AADServicePrincipal.DisplayName
-                AlternativeNames          = $AADServicePrincipal.AlternativeNames
-                AccountEnabled            = [boolean]$AADServicePrincipal.AccountEnabled
-                AppRoleAssignmentRequired = $AADServicePrincipal.AppRoleAssignmentRequired
-                ErrorUrl                  = $AADServicePrincipal.ErrorUrl
-                Homepage                  = $AADServicePrincipal.Homepage
-                LogoutUrl                 = $AADServicePrincipal.LogoutUrl
-                PublisherName             = $AADServicePrincipal.PublisherName
-                ReplyURLs                 = $AADServicePrincipal.ReplyURLs
-                SamlMetadataURL           = $AADServicePrincipal.SamlMetadataURL
-                ServicePrincipalNames     = $AADServicePrincipal.ServicePrincipalNames
-                ServicePrincipalType      = $AADServicePrincipal.ServicePrincipalType
-                Tags                      = $AADServicePrincipal.Tags
-                Ensure                    = 'Present'
-                Credential                = $Credential
-                ApplicationId             = $ApplicationId
-                ApplicationSecret         = $ApplicationSecret
-                TenantId                  = $TenantId
-                CertificateThumbprint     = $CertificateThumbprint
-                Managedidentity           = $ManagedIdentity.IsPresent
-                AccessTokens              = $AccessTokens
+        #region resource generator code
+        $complexAddIns = @()
+        foreach ($currentaddIns in $getValue.AdditionalProperties.addIns)
+        {
+            $myaddIns = @{}
+            $myaddIns.Add('Id', $currentaddIns.id)
+            $complexProperties = @()
+            foreach ($currentProperties in $currentaddIns.properties)
+            {
+                $myProperties = @{}
+                $myProperties.Add('Key', $currentProperties.key)
+                $myProperties.Add('Value', $currentProperties.value)
+                if ($myProperties.values.Where({$null -ne $_}).count -gt 0)
+                {
+                    $complexProperties += $myProperties
+                }
             }
-            Write-Verbose -Message "Get-TargetResource Result: `n $(Convert-M365DscHashtableToString -Hashtable $result)"
-            return $result
+            $myaddIns.Add('Properties',$complexProperties)
+            $myaddIns.Add('Type', $currentaddIns.type)
+            if ($myaddIns.values.Where({$null -ne $_}).count -gt 0)
+            {
+                $complexAddIns += $myaddIns
+            }
         }
+
+        $complexAppRoles = @()
+        foreach ($currentappRoles in $getValue.AdditionalProperties.appRoles)
+        {
+            $myappRoles = @{}
+            $myappRoles.Add('AllowedMemberTypes', $currentappRoles.allowedMemberTypes)
+            $myappRoles.Add('Description', $currentappRoles.description)
+            $myappRoles.Add('DisplayName', $currentappRoles.displayName)
+            $myappRoles.Add('Id', $currentappRoles.id)
+            $myappRoles.Add('IsEnabled', $currentappRoles.isEnabled)
+            $myappRoles.Add('Origin', $currentappRoles.origin)
+            $myappRoles.Add('Value', $currentappRoles.value)
+            if ($myappRoles.values.Where({$null -ne $_}).count -gt 0)
+            {
+                $complexAppRoles += $myappRoles
+            }
+        }
+
+        $complexCustomSecurityAttributes = @{}
+        if ($complexCustomSecurityAttributes.values.Where({$null -ne $_}).count -eq 0)
+        {
+            $complexCustomSecurityAttributes = $null
+        }
+
+        $complexInfo = @{}
+        $complexInfo.Add('LogoUrl', $getValue.AdditionalProperties.info.logoUrl)
+        $complexInfo.Add('MarketingUrl', $getValue.AdditionalProperties.info.marketingUrl)
+        $complexInfo.Add('PrivacyStatementUrl', $getValue.AdditionalProperties.info.privacyStatementUrl)
+        $complexInfo.Add('SupportUrl', $getValue.AdditionalProperties.info.supportUrl)
+        $complexInfo.Add('TermsOfServiceUrl', $getValue.AdditionalProperties.info.termsOfServiceUrl)
+        if ($complexInfo.values.Where({$null -ne $_}).count -eq 0)
+        {
+            $complexInfo = $null
+        }
+
+        $complexKeyCredentials = @()
+        foreach ($currentkeyCredentials in $getValue.AdditionalProperties.keyCredentials)
+        {
+            $mykeyCredentials = @{}
+            $mykeyCredentials.Add('CustomKeyIdentifier', $currentkeyCredentials.customKeyIdentifier)
+            $mykeyCredentials.Add('DisplayName', $currentkeyCredentials.displayName)
+            if ($null -ne $currentkeyCredentials.endDateTime)
+            {
+                $mykeyCredentials.Add('EndDateTime', ([DateTimeOffset]$currentkeyCredentials.endDateTime).ToString('o'))
+            }
+            $mykeyCredentials.Add('Key', $currentkeyCredentials.key)
+            $mykeyCredentials.Add('KeyId', $currentkeyCredentials.keyId)
+            if ($null -ne $currentkeyCredentials.startDateTime)
+            {
+                $mykeyCredentials.Add('StartDateTime', ([DateTimeOffset]$currentkeyCredentials.startDateTime).ToString('o'))
+            }
+            $mykeyCredentials.Add('Type', $currentkeyCredentials.type)
+            $mykeyCredentials.Add('Usage', $currentkeyCredentials.usage)
+            if ($mykeyCredentials.values.Where({$null -ne $_}).count -gt 0)
+            {
+                $complexKeyCredentials += $mykeyCredentials
+            }
+        }
+
+        $complexOauth2PermissionScopes = @()
+        foreach ($currentoauth2PermissionScopes in $getValue.AdditionalProperties.oauth2PermissionScopes)
+        {
+            $myoauth2PermissionScopes = @{}
+            $myoauth2PermissionScopes.Add('AdminConsentDescription', $currentoauth2PermissionScopes.adminConsentDescription)
+            $myoauth2PermissionScopes.Add('AdminConsentDisplayName', $currentoauth2PermissionScopes.adminConsentDisplayName)
+            $myoauth2PermissionScopes.Add('Id', $currentoauth2PermissionScopes.id)
+            $myoauth2PermissionScopes.Add('IsEnabled', $currentoauth2PermissionScopes.isEnabled)
+            $myoauth2PermissionScopes.Add('Origin', $currentoauth2PermissionScopes.origin)
+            $myoauth2PermissionScopes.Add('Type', $currentoauth2PermissionScopes.type)
+            $myoauth2PermissionScopes.Add('UserConsentDescription', $currentoauth2PermissionScopes.userConsentDescription)
+            $myoauth2PermissionScopes.Add('UserConsentDisplayName', $currentoauth2PermissionScopes.userConsentDisplayName)
+            $myoauth2PermissionScopes.Add('Value', $currentoauth2PermissionScopes.value)
+            if ($myoauth2PermissionScopes.values.Where({$null -ne $_}).count -gt 0)
+            {
+                $complexOauth2PermissionScopes += $myoauth2PermissionScopes
+            }
+        }
+
+        $complexPasswordCredentials = @()
+        foreach ($currentpasswordCredentials in $getValue.AdditionalProperties.passwordCredentials)
+        {
+            $mypasswordCredentials = @{}
+            $mypasswordCredentials.Add('CustomKeyIdentifier', $currentpasswordCredentials.customKeyIdentifier)
+            $mypasswordCredentials.Add('DisplayName', $currentpasswordCredentials.displayName)
+            if ($null -ne $currentpasswordCredentials.endDateTime)
+            {
+                $mypasswordCredentials.Add('EndDateTime', ([DateTimeOffset]$currentpasswordCredentials.endDateTime).ToString('o'))
+            }
+            $mypasswordCredentials.Add('Hint', $currentpasswordCredentials.hint)
+            $mypasswordCredentials.Add('KeyId', $currentpasswordCredentials.keyId)
+            $mypasswordCredentials.Add('SecretText', $currentpasswordCredentials.secretText)
+            if ($null -ne $currentpasswordCredentials.startDateTime)
+            {
+                $mypasswordCredentials.Add('StartDateTime', ([DateTimeOffset]$currentpasswordCredentials.startDateTime).ToString('o'))
+            }
+            if ($mypasswordCredentials.values.Where({$null -ne $_}).count -gt 0)
+            {
+                $complexPasswordCredentials += $mypasswordCredentials
+            }
+        }
+
+        $complexResourceSpecificApplicationPermissions = @()
+        foreach ($currentresourceSpecificApplicationPermissions in $getValue.AdditionalProperties.resourceSpecificApplicationPermissions)
+        {
+            $myresourceSpecificApplicationPermissions = @{}
+            $myresourceSpecificApplicationPermissions.Add('Description', $currentresourceSpecificApplicationPermissions.description)
+            $myresourceSpecificApplicationPermissions.Add('DisplayName', $currentresourceSpecificApplicationPermissions.displayName)
+            $myresourceSpecificApplicationPermissions.Add('Id', $currentresourceSpecificApplicationPermissions.id)
+            $myresourceSpecificApplicationPermissions.Add('IsEnabled', $currentresourceSpecificApplicationPermissions.isEnabled)
+            $myresourceSpecificApplicationPermissions.Add('Value', $currentresourceSpecificApplicationPermissions.value)
+            if ($myresourceSpecificApplicationPermissions.values.Where({$null -ne $_}).count -gt 0)
+            {
+                $complexResourceSpecificApplicationPermissions += $myresourceSpecificApplicationPermissions
+            }
+        }
+
+        $complexSamlSingleSignOnSettings = @{}
+        $complexSamlSingleSignOnSettings.Add('RelayState', $getValue.AdditionalProperties.samlSingleSignOnSettings.relayState)
+        if ($complexSamlSingleSignOnSettings.values.Where({$null -ne $_}).count -eq 0)
+        {
+            $complexSamlSingleSignOnSettings = $null
+        }
+
+        $complexVerifiedPublisher = @{}
+        if ($null -ne $getValue.AdditionalProperties.verifiedPublisher.addedDateTime)
+        {
+            $complexVerifiedPublisher.Add('AddedDateTime', ([DateTimeOffset]$getValue.AdditionalProperties.verifiedPublisher.addedDateTime).ToString('o'))
+        }
+        $complexVerifiedPublisher.Add('DisplayName', $getValue.AdditionalProperties.verifiedPublisher.displayName)
+        $complexVerifiedPublisher.Add('VerifiedPublisherId', $getValue.AdditionalProperties.verifiedPublisher.verifiedPublisherId)
+        if ($complexVerifiedPublisher.values.Where({$null -ne $_}).count -eq 0)
+        {
+            $complexVerifiedPublisher = $null
+        }
+        #endregion
+
+        #region resource generator code
+        $dateDeletedDateTime = $null
+        if ($null -ne $getValue.DeletedDateTime)
+        {
+            $dateDeletedDateTime = ([DateTimeOffset]$getValue.DeletedDateTime).ToString('o')
+        }
+        #endregion
+
+        $results = @{
+            #region resource generator code
+            AccountEnabled                         = $getValue.AdditionalProperties.accountEnabled
+            AddIns                                 = $complexAddIns
+            AlternativeNames                       = $getValue.AdditionalProperties.alternativeNames
+            AppDescription                         = $getValue.AdditionalProperties.appDescription
+            AppDisplayName                         = $getValue.AdditionalProperties.appDisplayName
+            AppId                                  = $getValue.AdditionalProperties.appId
+            ApplicationTemplateId                  = $getValue.AdditionalProperties.applicationTemplateId
+            AppOwnerOrganizationId                 = $getValue.AdditionalProperties.appOwnerOrganizationId
+            AppRoleAssignmentRequired              = $getValue.AdditionalProperties.appRoleAssignmentRequired
+            AppRoles                               = $complexAppRoles
+            CustomSecurityAttributes               = $complexCustomSecurityAttributes
+            Description                            = $getValue.AdditionalProperties.description
+            DisabledByMicrosoftStatus              = $getValue.AdditionalProperties.disabledByMicrosoftStatus
+            DisplayName                            = $getValue.AdditionalProperties.displayName
+            Homepage                               = $getValue.AdditionalProperties.homepage
+            Info                                   = $complexInfo
+            KeyCredentials                         = $complexKeyCredentials
+            LoginUrl                               = $getValue.AdditionalProperties.loginUrl
+            LogoutUrl                              = $getValue.AdditionalProperties.logoutUrl
+            Notes                                  = $getValue.AdditionalProperties.notes
+            NotificationEmailAddresses             = $getValue.AdditionalProperties.notificationEmailAddresses
+            Oauth2PermissionScopes                 = $complexOauth2PermissionScopes
+            PasswordCredentials                    = $complexPasswordCredentials
+            PreferredSingleSignOnMode              = $getValue.AdditionalProperties.preferredSingleSignOnMode
+            PreferredTokenSigningKeyThumbprint     = $getValue.AdditionalProperties.preferredTokenSigningKeyThumbprint
+            ReplyUrls                              = $getValue.AdditionalProperties.replyUrls
+            ResourceSpecificApplicationPermissions = $complexResourceSpecificApplicationPermissions
+            SamlSingleSignOnSettings               = $complexSamlSingleSignOnSettings
+            ServicePrincipalNames                  = $getValue.AdditionalProperties.servicePrincipalNames
+            ServicePrincipalType                   = $getValue.AdditionalProperties.servicePrincipalType
+            SignInAudience                         = $getValue.AdditionalProperties.signInAudience
+            Tags                                   = $getValue.AdditionalProperties.tags
+            TokenEncryptionKeyId                   = $getValue.AdditionalProperties.tokenEncryptionKeyId
+            VerifiedPublisher                      = $complexVerifiedPublisher
+            DeletedDateTime                        = $dateDeletedDateTime
+            Id                                     = $getValue.Id
+            Ensure                                 = 'Present'
+            Credential                             = $Credential
+            ApplicationId                          = $ApplicationId
+            TenantId                               = $TenantId
+            ApplicationSecret                      = $ApplicationSecret
+            CertificateThumbprint                  = $CertificateThumbprint
+            Managedidentity                        = $ManagedIdentity.IsPresent
+            #endregion
+        }
+
+        return [System.Collections.Hashtable] $results
     }
     catch
     {
-        Write-Verbose -Message $_
         New-M365DSCLogEntry -Message 'Error retrieving data:' `
             -Exception $_ `
             -Source $($MyInvocation.MyCommand.Source) `
             -TenantId $TenantId `
             -Credential $Credential
 
-        return $nullReturn
+        return $nullResult
     }
 }
 
@@ -245,41 +463,78 @@ function Set-TargetResource
     [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory = $true)]
-        [System.String]
-        $AppId,
+        #region resource generator code
+        [Parameter()]
+        [System.Boolean]
+        $AccountEnabled,
 
         [Parameter()]
         [Microsoft.Management.Infrastructure.CimInstance[]]
-        $AppRoleAssignedTo,
-
-        [Parameter()]
-        [System.String]
-        $ObjectId,
-
-        [Parameter()]
-        [System.String]
-        $DisplayName,
+        $AddIns,
 
         [Parameter()]
         [System.String[]]
         $AlternativeNames,
 
         [Parameter()]
-        [System.Boolean]
-        $AccountEnabled,
+        [System.String]
+        $AppDescription,
+
+        [Parameter()]
+        [System.String]
+        $AppDisplayName,
+
+        [Parameter()]
+        [System.String]
+        $AppId,
+
+        [Parameter()]
+        [System.String]
+        $ApplicationTemplateId,
+
+        [Parameter()]
+        [System.Guid]
+        $AppOwnerOrganizationId,
 
         [Parameter()]
         [System.Boolean]
         $AppRoleAssignmentRequired,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $AppRoles,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CustomSecurityAttributes,
+
+        [Parameter()]
         [System.String]
-        $ErrorUrl,
+        $Description,
+
+        [Parameter()]
+        [System.String]
+        $DisabledByMicrosoftStatus,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $DisplayName,
 
         [Parameter()]
         [System.String]
         $Homepage,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $Info,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $KeyCredentials,
+
+        [Parameter()]
+        [System.String]
+        $LoginUrl,
 
         [Parameter()]
         [System.String]
@@ -287,15 +542,39 @@ function Set-TargetResource
 
         [Parameter()]
         [System.String]
-        $PublisherName,
+        $Notes,
+
+        [Parameter()]
+        [System.String[]]
+        $NotificationEmailAddresses,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $Oauth2PermissionScopes,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $PasswordCredentials,
+
+        [Parameter()]
+        [System.String]
+        $PreferredSingleSignOnMode,
+
+        [Parameter()]
+        [System.String]
+        $PreferredTokenSigningKeyThumbprint,
 
         [Parameter()]
         [System.String[]]
         $ReplyUrls,
 
         [Parameter()]
-        [System.String]
-        $SamlMetadataURL,
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $ResourceSpecificApplicationPermissions,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $SamlSingleSignOnSettings,
 
         [Parameter()]
         [System.String[]]
@@ -306,12 +585,33 @@ function Set-TargetResource
         $ServicePrincipalType,
 
         [Parameter()]
+        [System.String]
+        $SignInAudience,
+
+        [Parameter()]
         [System.String[]]
         $Tags,
 
         [Parameter()]
-        [ValidateSet('Present', 'Absent')]
+        [System.Guid]
+        $TokenEncryptionKeyId,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $VerifiedPublisher,
+
+        [Parameter()]
         [System.String]
+        $DeletedDateTime,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Id,
+
+        #endregion
+        [Parameter()]
+        [System.String]
+        [ValidateSet('Absent', 'Present')]
         $Ensure = 'Present',
 
         [Parameter()]
@@ -336,22 +636,14 @@ function Set-TargetResource
 
         [Parameter()]
         [Switch]
-        $ManagedIdentity,
-
-        [Parameter()]
-        [System.String[]]
-        $AccessTokens
+        $ManagedIdentity
     )
 
-    $ConnectionMode = New-M365DSCConnection -Workload 'MicrosoftGraph' `
-        -InboundParameters $PSBoundParameters
-
-    Write-Verbose -Message 'Setting configuration of Azure AD ServicePrincipal'
     #Ensure the proper dependencies are installed in the current environment.
     Confirm-M365DSCDependencies
 
     #region Telemetry
-    $ResourceName = $MyInvocation.MyCommand.ModuleName -replace 'MSFT_', ''
+    $ResourceName = $MyInvocation.MyCommand.ModuleName.Replace('MSFT_', '')
     $CommandName = $MyInvocation.MyCommand
     $data = Format-M365DSCTelemetryParameters -ResourceName $ResourceName `
         -CommandName $CommandName `
@@ -359,141 +651,61 @@ function Set-TargetResource
     Add-M365DSCTelemetryEvent -Data $data
     #endregion
 
-    $currentAADServicePrincipal = Get-TargetResource @PSBoundParameters
-    $currentParameters = $PSBoundParameters
-    $currentParameters.Remove('ApplicationId') | Out-Null
-    $currentParameters.Remove('TenantId') | Out-Null
-    $currentParameters.Remove('CertificateThumbprint') | Out-Null
-    $currentParameters.Remove('ManagedIdentity') | Out-Null
-    $currentParameters.Remove('Credential') | Out-Null
-    $currentParameters.Remove('Ensure') | Out-Null
-    $currentParameters.Remove('ObjectID') | Out-Null
-    $currentParameters.Remove('ApplicationSecret') | Out-Null
-    $currentParameters.Remove('AccessTokens') | Out-Null
+    $currentInstance = Get-TargetResource @PSBoundParameters
 
-    # ServicePrincipal should exist but it doesn't
-    if ($Ensure -eq 'Present' -and $currentAADServicePrincipal.Ensure -eq 'Absent')
+    $BoundParameters = Remove-M365DSCAuthenticationParameter -BoundParameters $PSBoundParameters
+
+    if ($Ensure -eq 'Present' -and $currentInstance.Ensure -eq 'Absent')
     {
-        if ($null -ne $AppRoleAssignedTo)
-        {
-            $currentParameters.AppRoleAssignedTo = $AppRoleAssignedToValue
-        }
-        $ObjectGuid = [System.Guid]::empty
-        if (-not [System.Guid]::TryParse($AppId, [System.Management.Automation.PSReference]$ObjectGuid))
-        {
-            $appInstance = Get-MgApplication -Filter "DisplayName eq '$AppId'"
-            $currentParameters.AppId = $appInstance.AppId
-        }
+        Write-Verbose -Message "Creating an Azure AD Service Principal with DisplayName {$DisplayName}"
 
-        Write-Verbose -Message 'Creating new Service Principal'
-        Write-Verbose -Message "With Values: $(Convert-M365DscHashtableToString -Hashtable $currentParameters)"
-        New-MgServicePrincipal @currentParameters
-    }
-    # ServicePrincipal should exist and will be configured to desired state
-    elseif ($Ensure -eq 'Present' -and $currentAADServicePrincipal.Ensure -eq 'Present')
-    {
-        Write-Verbose -Message 'Updating existing Service Principal'
-        $ObjectGuid = [System.Guid]::empty
-        if (-not [System.Guid]::TryParse($AppId, [System.Management.Automation.PSReference]$ObjectGuid))
+        $CreateParameters = ([Hashtable]$BoundParameters).clone()
+        $CreateParameters = Rename-M365DSCCimInstanceParameter -Properties $CreateParameters
+        $CreateParameters.Remove('Id') | Out-Null
+
+        $keys = (([Hashtable]$CreateParameters).clone()).Keys
+        foreach ($key in $keys)
         {
-            $appInstance = Get-MgApplication -Filter "DisplayName eq '$AppId'"
-            $currentParameters.AppId = $appInstance.AppId
-        }
-        Write-Verbose -Message "CurrentParameters: $($currentParameters | Out-String)"
-        Write-Verbose -Message "ServicePrincipalID: $($currentAADServicePrincipal.ObjectID)"
-        $currentParameters.Remove('AppRoleAssignedTo') | Out-Null
-        Update-MgServicePrincipal -ServicePrincipalId $currentAADServicePrincipal.ObjectID @currentParameters
-
-        if ($AppRoleAssignedTo)
-        {
-            [Array]$currentPrincipals = $currentAADServicePrincipal.AppRoleAssignedTo.Identity
-            [Array]$desiredPrincipals = $AppRoleAssignedTo.Identity
-
-            [Array]$differences = Compare-Object -ReferenceObject $currentPrincipals -DifferenceObject $desiredPrincipals
-            [Array]$membersToAdd = $differences | Where-Object -FilterScript {$_.SideIndicator -eq '=>'}
-            [Array]$membersToRemove = $differences | Where-Object -FilterScript {$_.SideIndicator -eq '<='}
-
-            if ($differences.Count -gt 0)
+            if ($null -ne $CreateParameters.$key -and $CreateParameters.$key.getType().Name -like '*cimInstance*')
             {
-                if ($membersToAdd.Count -gt 0)
-                {
-                    $AppRoleAssignedToValues = @()
-                    foreach ($assignment in $AppRoleAssignedTo)
-                    {
-                        $AppRoleAssignedToValues += @{
-                            PrincipalType = $assignment.PrincipalType
-                            Identity      = $assignment.Identity
-                        }
-                    }
-                    foreach ($member in $membersToAdd)
-                    {
-                        $assignment = $AppRoleAssignedToValues | Where-Object -FilterScript {$_.Identity -eq $member.InputObject}
-                        if ($assignment.PrincipalType -eq 'User')
-                        {
-                            Write-Verbose -Message "Retrieving user {$($assignment.Identity)}"
-                            $user = Get-MgUser -Filter "startswith(UserPrincipalName, '$($assignment.Identity)')"
-                            $PrincipalIdValue = $user.Id
-                        }
-                        else
-                        {
-                            Write-Verbose -Message "Retrieving group {$($assignment.Identity)}"
-                            $group = Get-MgGroup -Filter "DisplayName eq '$($assignment.Identity)'"
-                            $PrincipalIdValue = $group.Id
-                        }
-
-                        $bodyParam = @{
-                            principalId = $PrincipalIdValue
-                            resourceId  = $currentAADServicePrincipal.ObjectID
-                            appRoleId   = "00000000-0000-0000-0000-000000000000"
-                        }
-                        Write-Verbose -Message "Adding member {$($member.InputObject.ToString())}"
-                        New-MgServicePrincipalAppRoleAssignedTo -ServicePrincipalId $currentAADServicePrincipal.ObjectID `
-                            -BodyParameter $bodyParam | Out-Null
-                    }
-                }
-
-                if ($membersToRemove.Count -gt 0)
-                {
-                    $AppRoleAssignedToValues = @()
-                    foreach ($assignment in $currentAADServicePrincipal.AppRoleAssignedTo)
-                    {
-                        $AppRoleAssignedToValues += @{
-                            PrincipalType = $assignment.PrincipalType
-                            Identity      = $assignment.Identity
-                        }
-                    }
-                    foreach ($member in $membersToRemove)
-                    {
-                        $assignment = $AppRoleAssignedToValues | Where-Object -FilterScript {$_.Identity -eq $member.InputObject}
-                        if ($assignment.PrincipalType -eq 'User')
-                        {
-                            Write-Verbose -Message "Retrieving user {$($assignment.Identity)}"
-                            $user = Get-MgUser -Filter "startswith(UserPrincipalName, '$($assignment.Identity)')"
-                            $PrincipalIdValue = $user.Id
-                        }
-                        else
-                        {
-                            Write-Verbose -Message "Retrieving group {$($assignment.Identity)}"
-                            $group = Get-MgGroup -Filter "DisplayName eq '$($assignment.Identity)'"
-                            $PrincipalIdValue = $group.Id
-                        }
-                        Write-Verbose -Message "PrincipalID Value = '$PrincipalIdValue'"
-                        Write-Verbose -Message "ServicePrincipalId = '$($currentAADServicePrincipal.ObjectID)'"
-                        $allAssignments = Get-MgServicePrincipalAppRoleAssignedTo -ServicePrincipalId $currentAADServicePrincipal.ObjectID
-                        $assignmentToRemove = $allAssignments | Where-Object -FilterScript {$_.PrincipalId -eq $PrincipalIdValue}
-                        Write-Verbose -Message "Removing member {$($member.InputObject.ToString())}"
-                        Remove-MgServicePrincipalAppRoleAssignedTo -ServicePrincipalId $currentAADServicePrincipal.ObjectID `
-                            -AppRoleAssignmentId $assignmentToRemove.Id | Out-Null
-                    }
-                }
+                $CreateParameters.$key = Convert-M365DSCDRGComplexTypeToHashtable -ComplexObject $CreateParameters.$key
             }
         }
+        #region resource generator code
+        $CreateParameters.Add("@odata.type", "#microsoft.graph.ServicePrincipal")
+        $policy = New-MgServicePrincipal -BodyParameter $CreateParameters
+        #endregion
     }
-    # ServicePrincipal exists but should not
-    elseif ($Ensure -eq 'Absent' -and $currentAADServicePrincipal.Ensure -eq 'Present')
+    elseif ($Ensure -eq 'Present' -and $currentInstance.Ensure -eq 'Present')
     {
-        Write-Verbose -Message 'Removing Service Principal'
-        Remove-MgServicePrincipal -ServicePrincipalId $currentAADServicePrincipal.ObjectID
+        Write-Verbose -Message "Updating the Azure AD Service Principal with Id {$($currentInstance.Id)}"
+
+        $UpdateParameters = ([Hashtable]$BoundParameters).clone()
+        $UpdateParameters = Rename-M365DSCCimInstanceParameter -Properties $UpdateParameters
+
+        $UpdateParameters.Remove('Id') | Out-Null
+
+        $keys = (([Hashtable]$UpdateParameters).clone()).Keys
+        foreach ($key in $keys)
+        {
+            if ($null -ne $UpdateParameters.$key -and $UpdateParameters.$key.getType().Name -like '*cimInstance*')
+            {
+                $UpdateParameters.$key = Convert-M365DSCDRGComplexTypeToHashtable -ComplexObject $UpdateParameters.$key
+            }
+        }
+        #region resource generator code
+        $UpdateParameters.Add("@odata.type", "#microsoft.graph.ServicePrincipal")
+        Update-MgServicePrincipal  `
+            -ServicePrincipalId $currentInstance.Id `
+            -BodyParameter $UpdateParameters
+        #endregion
+    }
+    elseif ($Ensure -eq 'Absent' -and $currentInstance.Ensure -eq 'Present')
+    {
+        Write-Verbose -Message "Removing the Azure AD Service Principal with Id {$($currentInstance.Id)}" 
+        #region resource generator code
+Remove-MgServicePrincipal -ServicePrincipalId $currentInstance.Id
+        #endregion
     }
 }
 
@@ -503,41 +715,78 @@ function Test-TargetResource
     [OutputType([System.Boolean])]
     param
     (
-        [Parameter(Mandatory = $true)]
-        [System.String]
-        $AppId,
+        #region resource generator code
+        [Parameter()]
+        [System.Boolean]
+        $AccountEnabled,
 
         [Parameter()]
         [Microsoft.Management.Infrastructure.CimInstance[]]
-        $AppRoleAssignedTo,
-
-        [Parameter()]
-        [System.String]
-        $ObjectId,
-
-        [Parameter()]
-        [System.String]
-        $DisplayName,
+        $AddIns,
 
         [Parameter()]
         [System.String[]]
         $AlternativeNames,
 
         [Parameter()]
-        [System.Boolean]
-        $AccountEnabled,
+        [System.String]
+        $AppDescription,
+
+        [Parameter()]
+        [System.String]
+        $AppDisplayName,
+
+        [Parameter()]
+        [System.String]
+        $AppId,
+
+        [Parameter()]
+        [System.String]
+        $ApplicationTemplateId,
+
+        [Parameter()]
+        [System.Guid]
+        $AppOwnerOrganizationId,
 
         [Parameter()]
         [System.Boolean]
         $AppRoleAssignmentRequired,
 
         [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $AppRoles,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $CustomSecurityAttributes,
+
+        [Parameter()]
         [System.String]
-        $ErrorUrl,
+        $Description,
+
+        [Parameter()]
+        [System.String]
+        $DisabledByMicrosoftStatus,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $DisplayName,
 
         [Parameter()]
         [System.String]
         $Homepage,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $Info,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $KeyCredentials,
+
+        [Parameter()]
+        [System.String]
+        $LoginUrl,
 
         [Parameter()]
         [System.String]
@@ -545,15 +794,39 @@ function Test-TargetResource
 
         [Parameter()]
         [System.String]
-        $PublisherName,
+        $Notes,
+
+        [Parameter()]
+        [System.String[]]
+        $NotificationEmailAddresses,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $Oauth2PermissionScopes,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $PasswordCredentials,
+
+        [Parameter()]
+        [System.String]
+        $PreferredSingleSignOnMode,
+
+        [Parameter()]
+        [System.String]
+        $PreferredTokenSigningKeyThumbprint,
 
         [Parameter()]
         [System.String[]]
         $ReplyUrls,
 
         [Parameter()]
-        [System.String]
-        $SamlMetadataURL,
+        [Microsoft.Management.Infrastructure.CimInstance[]]
+        $ResourceSpecificApplicationPermissions,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $SamlSingleSignOnSettings,
 
         [Parameter()]
         [System.String[]]
@@ -564,12 +837,34 @@ function Test-TargetResource
         $ServicePrincipalType,
 
         [Parameter()]
+        [System.String]
+        $SignInAudience,
+
+        [Parameter()]
         [System.String[]]
         $Tags,
 
         [Parameter()]
-        [ValidateSet('Present', 'Absent')]
+        [System.Guid]
+        $TokenEncryptionKeyId,
+
+        [Parameter()]
+        [Microsoft.Management.Infrastructure.CimInstance]
+        $VerifiedPublisher,
+
+        [Parameter()]
         [System.String]
+        $DeletedDateTime,
+
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Id,
+
+        #endregion
+
+        [Parameter()]
+        [System.String]
+        [ValidateSet('Absent', 'Present')]
         $Ensure = 'Present',
 
         [Parameter()]
@@ -594,18 +889,14 @@ function Test-TargetResource
 
         [Parameter()]
         [Switch]
-        $ManagedIdentity,
-
-        [Parameter()]
-        [System.String[]]
-        $AccessTokens
+        $ManagedIdentity
     )
 
     #Ensure the proper dependencies are installed in the current environment.
     Confirm-M365DSCDependencies
 
     #region Telemetry
-    $ResourceName = $MyInvocation.MyCommand.ModuleName -replace 'MSFT_', ''
+    $ResourceName = $MyInvocation.MyCommand.ModuleName.Replace('MSFT_', '')
     $CommandName = $MyInvocation.MyCommand
     $data = Format-M365DSCTelemetryParameters -ResourceName $ResourceName `
         -CommandName $CommandName `
@@ -613,23 +904,61 @@ function Test-TargetResource
     Add-M365DSCTelemetryEvent -Data $data
     #endregion
 
-    Write-Verbose -Message 'Testing configuration of Azure AD ServicePrincipal'
+    Write-Verbose -Message "Testing configuration of the Azure AD Service Principal with Id {$Id} and DisplayName {$DisplayName}"
 
     $CurrentValues = Get-TargetResource @PSBoundParameters
+    $ValuesToCheck = ([Hashtable]$PSBoundParameters).clone()
+
+    if ($CurrentValues.Ensure -ne $Ensure)
+    {
+        Write-Verbose -Message "Test-TargetResource returned $false"
+        return $false
+    }
+    $testResult = $true
+
+    #Compare Cim instances
+    foreach ($key in $PSBoundParameters.Keys)
+    {
+        $source = $PSBoundParameters.$key
+        $target = $CurrentValues.$key
+        if ($source.getType().Name -like '*CimInstance*')
+        {
+            $source = Get-M365DSCDRGComplexTypeToHashtable -ComplexObject $source
+
+            $testResult = Compare-M365DSCComplexObject `
+                -Source ($source) `
+                -Target ($target)
+
+            if (-Not $testResult)
+            {
+                $testResult = $false
+                break
+            }
+
+            $ValuesToCheck.Remove($key) | Out-Null
+        }
+    }
+
+    $ValuesToCheck.remove('Id') | Out-Null
+    $ValuesToCheck.Remove('Credential') | Out-Null
+    $ValuesToCheck.Remove('ApplicationId') | Out-Null
+    $ValuesToCheck.Remove('TenantId') | Out-Null
+    $ValuesToCheck.Remove('ApplicationSecret') | Out-Null
 
     Write-Verbose -Message "Current Values: $(Convert-M365DscHashtableToString -Hashtable $CurrentValues)"
-    Write-Verbose -Message "Target Values: $(Convert-M365DscHashtableToString -Hashtable $PSBoundParameters)"
+    Write-Verbose -Message "Target Values: $(Convert-M365DscHashtableToString -Hashtable $ValuesToCheck)"
 
-    $ValuesToCheck = $PSBoundParameters
+    if ($testResult)
+    {
+        $testResult = Test-M365DSCParameterState -CurrentValues $CurrentValues `
+            -Source $($MyInvocation.MyCommand.Source) `
+            -DesiredValues $PSBoundParameters `
+            -ValuesToCheck $ValuesToCheck.Keys
+    }
 
-    $TestResult = Test-M365DSCParameterState -CurrentValues $CurrentValues `
-        -Source $($MyInvocation.MyCommand.Source) `
-        -DesiredValues $PSBoundParameters `
-        -ValuesToCheck $ValuesToCheck.Keys
+    Write-Verbose -Message "Test-TargetResource returned $testResult"
 
-    Write-Verbose -Message "Test-TargetResource returned $TestResult"
-
-    return $TestResult
+    return $testResult
 }
 
 function Export-TargetResource
@@ -638,10 +967,6 @@ function Export-TargetResource
     [OutputType([System.String])]
     param
     (
-        [Parameter()]
-        [System.String]
-        $Filter,
-
         [Parameter()]
         [System.Management.Automation.PSCredential]
         $Credential,
@@ -664,12 +989,9 @@ function Export-TargetResource
 
         [Parameter()]
         [Switch]
-        $ManagedIdentity,
-
-        [Parameter()]
-        [System.String[]]
-        $AccessTokens
+        $ManagedIdentity
     )
+
     $ConnectionMode = New-M365DSCConnection -Workload 'MicrosoftGraph' `
         -InboundParameters $PSBoundParameters
 
@@ -677,7 +999,7 @@ function Export-TargetResource
     Confirm-M365DSCDependencies
 
     #region Telemetry
-    $ResourceName = $MyInvocation.MyCommand.ModuleName -replace 'MSFT_', ''
+    $ResourceName = $MyInvocation.MyCommand.ModuleName.Replace('MSFT_', '')
     $CommandName = $MyInvocation.MyCommand
     $data = Format-M365DSCTelemetryParameters -ResourceName $ResourceName `
         -CommandName $CommandName `
@@ -685,56 +1007,253 @@ function Export-TargetResource
     Add-M365DSCTelemetryEvent -Data $data
     #endregion
 
-    $dscContent = ''
     try
     {
+        #region resource generator code
+        [array]$getValue = Get-MgServicePrincipal `
+            -All `
+            -ErrorAction Stop
+        #endregion
+
         $i = 1
-        Write-Host "`r`n" -NoNewline
-        $Script:ExportMode = $true
-        [array] $Script:exportedInstances = Get-MgServicePrincipal -All:$true `
-                                                                   -Filter $Filter `
-                                                                   -Expand 'AppRoleAssignedTo' `
-                                                                   -ErrorAction Stop
-        foreach ($AADServicePrincipal in $Script:exportedInstances)
+        $dscContent = ''
+        if ($getValue.Length -eq 0)
         {
-            Write-Host "    |---[$i/$($Script:exportedInstances.Count)] $($AADServicePrincipal.DisplayName)" -NoNewline
-            $Params = @{
-                Credential            = $Credential
-                ApplicationId         = $ApplicationId
-                ApplicationSecret     = $ApplicationSecret
-                TenantId              = $TenantId
-                CertificateThumbprint = $CertificateThumbprint
-                Managedidentity       = $ManagedIdentity.IsPresent
-                AppID                 = $AADServicePrincipal.AppId
-                AccessTokens          = $AccessTokens
-            }
-            $Results = Get-TargetResource @Params
-
-            if ($Results.Ensure -eq 'Present')
+            Write-Host $Global:M365DSCEmojiGreenCheckMark
+        }
+        else
+        {
+            Write-Host "`r`n" -NoNewline
+        }
+        foreach ($config in $getValue)
+        {
+            $displayedKey = $config.Id
+            if (-not [String]::IsNullOrEmpty($config.displayName))
             {
-                $Results = Update-M365DSCExportAuthenticationResults -ConnectionMode $ConnectionMode `
-                    -Results $Results
-                if ($Results.AppRoleAssignedTo.Count -gt 0)
-                {
-                    $Results.AppRoleAssignedTo = Get-M365DSCAzureADServicePrincipalAssignmentAsString -Assignments $Results.AppRoleAssignedTo
-                }
-                $currentDSCBlock = Get-M365DSCExportContentForResource -ResourceName $ResourceName `
-                    -ConnectionMode $ConnectionMode `
-                    -ModulePath $PSScriptRoot `
-                    -Results $Results `
-                    -Credential $Credential
-                if ($null -ne $Results.AppRoleAssignedTo)
-                {
-                    $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock `
-                        -ParameterName 'AppRoleAssignedTo'
-                }
-                $dscContent += $currentDSCBlock
-                Save-M365DSCPartialExport -Content $currentDSCBlock `
-                    -FileName $Global:PartialExportFileName
-
-                Write-Host $Global:M365DSCEmojiGreenCheckMark
-                $i++
+                $displayedKey = $config.displayName
             }
+            Write-Host "    |---[$i/$($getValue.Count)] $displayedKey" -NoNewline
+            $params = @{
+                Id = $config.Id
+                DisplayName           =  $config.DisplayName
+                Ensure = 'Present'
+                Credential = $Credential
+                ApplicationId = $ApplicationId
+                TenantId = $TenantId
+                ApplicationSecret = $ApplicationSecret
+                CertificateThumbprint = $CertificateThumbprint
+                Managedidentity = $ManagedIdentity.IsPresent
+            }
+
+            $Results = Get-TargetResource @Params
+            $Results = Update-M365DSCExportAuthenticationResults -ConnectionMode $ConnectionMode `
+                -Results $Results
+            if ($null -ne $Results.AddIns)
+            {
+                $complexMapping = @(
+                    @{
+                        Name = 'AddIns'
+                        CimInstanceName = 'MicrosoftGraphAddIn'
+                        IsRequired = $False
+                    }
+                    @{
+                        Name = 'Properties'
+                        CimInstanceName = 'MicrosoftGraphKeyValue'
+                        IsRequired = $False
+                    }
+                )
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.AddIns `
+                    -CIMInstanceName 'MicrosoftGraphaddIn' `
+                    -ComplexTypeMapping $complexMapping
+
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.AddIns = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('AddIns') | Out-Null
+                }
+            }
+            if ($null -ne $Results.AppRoles)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.AppRoles `
+                    -CIMInstanceName 'MicrosoftGraphappRole'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.AppRoles = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('AppRoles') | Out-Null
+                }
+            }
+            if ($null -ne $Results.CustomSecurityAttributes)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.CustomSecurityAttributes `
+                    -CIMInstanceName 'MicrosoftGraphcustomSecurityAttributeValue'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.CustomSecurityAttributes = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('CustomSecurityAttributes') | Out-Null
+                }
+            }
+            if ($null -ne $Results.Info)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.Info `
+                    -CIMInstanceName 'MicrosoftGraphinformationalUrl'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.Info = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('Info') | Out-Null
+                }
+            }
+            if ($null -ne $Results.KeyCredentials)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.KeyCredentials `
+                    -CIMInstanceName 'MicrosoftGraphkeyCredential'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.KeyCredentials = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('KeyCredentials') | Out-Null
+                }
+            }
+            if ($null -ne $Results.Oauth2PermissionScopes)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.Oauth2PermissionScopes `
+                    -CIMInstanceName 'MicrosoftGraphpermissionScope'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.Oauth2PermissionScopes = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('Oauth2PermissionScopes') | Out-Null
+                }
+            }
+            if ($null -ne $Results.PasswordCredentials)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.PasswordCredentials `
+                    -CIMInstanceName 'MicrosoftGraphpasswordCredential'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.PasswordCredentials = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('PasswordCredentials') | Out-Null
+                }
+            }
+            if ($null -ne $Results.ResourceSpecificApplicationPermissions)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.ResourceSpecificApplicationPermissions `
+                    -CIMInstanceName 'MicrosoftGraphresourceSpecificPermission'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.ResourceSpecificApplicationPermissions = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('ResourceSpecificApplicationPermissions') | Out-Null
+                }
+            }
+            if ($null -ne $Results.SamlSingleSignOnSettings)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.SamlSingleSignOnSettings `
+                    -CIMInstanceName 'MicrosoftGraphsamlSingleSignOnSettings'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.SamlSingleSignOnSettings = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('SamlSingleSignOnSettings') | Out-Null
+                }
+            }
+            if ($null -ne $Results.VerifiedPublisher)
+            {
+                $complexTypeStringResult = Get-M365DSCDRGComplexTypeToString `
+                    -ComplexObject $Results.VerifiedPublisher `
+                    -CIMInstanceName 'MicrosoftGraphverifiedPublisher'
+                if (-Not [String]::IsNullOrWhiteSpace($complexTypeStringResult))
+                {
+                    $Results.VerifiedPublisher = $complexTypeStringResult
+                }
+                else
+                {
+                    $Results.Remove('VerifiedPublisher') | Out-Null
+                }
+            }
+
+            $currentDSCBlock = Get-M365DSCExportContentForResource -ResourceName $ResourceName `
+                -ConnectionMode $ConnectionMode `
+                -ModulePath $PSScriptRoot `
+                -Results $Results `
+                -Credential $Credential
+            if ($Results.AddIns)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "AddIns" -isCIMArray:$True
+            }
+            if ($Results.AppRoles)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "AppRoles" -isCIMArray:$True
+            }
+            if ($Results.CustomSecurityAttributes)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "CustomSecurityAttributes" -isCIMArray:$False
+            }
+            if ($Results.Info)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "Info" -isCIMArray:$False
+            }
+            if ($Results.KeyCredentials)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "KeyCredentials" -isCIMArray:$True
+            }
+            if ($Results.Oauth2PermissionScopes)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "Oauth2PermissionScopes" -isCIMArray:$True
+            }
+            if ($Results.PasswordCredentials)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "PasswordCredentials" -isCIMArray:$True
+            }
+            if ($Results.ResourceSpecificApplicationPermissions)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "ResourceSpecificApplicationPermissions" -isCIMArray:$True
+            }
+            if ($Results.SamlSingleSignOnSettings)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "SamlSingleSignOnSettings" -isCIMArray:$False
+            }
+            if ($Results.VerifiedPublisher)
+            {
+                $currentDSCBlock = Convert-DSCStringParamToVariable -DSCBlock $currentDSCBlock -ParameterName "VerifiedPublisher" -isCIMArray:$False
+            }
+
+            $dscContent += $currentDSCBlock
+            Save-M365DSCPartialExport -Content $currentDSCBlock `
+                -FileName $Global:PartialExportFileName
+            $i++
+            Write-Host $Global:M365DSCEmojiGreenCheckMark
         }
         return $dscContent
     }
@@ -750,28 +1269,6 @@ function Export-TargetResource
 
         return ''
     }
-}
-
-function Get-M365DSCAzureADServicePrincipalAssignmentAsString
-{
-    [CmdletBinding()]
-    [OutputType([System.String])]
-    param(
-        [Parameter(Mandatory = $true)]
-        [System.Collections.ArrayList]
-        $Assignments
-    )
-
-    $StringContent = '@('
-    foreach ($assignment in $Assignments)
-    {
-        $StringContent += "MSFT_AADServicePrincipalRoleAssignment {`r`n"
-        $StringContent += "                PrincipalType = '" + $assignment.PrincipalType + "'`r`n"
-        $StringContent += "                Identity      = '" + $assignment.Identity + "'`r`n"
-        $StringContent += "            }`r`n"
-    }
-    $StringContent += '            )'
-    return $StringContent
 }
 
 Export-ModuleMember -Function *-TargetResource

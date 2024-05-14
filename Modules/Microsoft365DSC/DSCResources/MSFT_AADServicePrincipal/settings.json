@@ -1,38 +1,57 @@
-﻿{
+{
     "resourceName": "AADServicePrincipal",
-    "description": "This resource configures an Azure Active Directory ServicePrincipal.",
-    "roles": {
-        "read": [],
-        "update": [
-            "Application Administrator"
-        ]
-    },
-    "permissions": {
-        "graph": {
-            "delegated": {
-                "read": [
-                    {
-                        "name": "Application.Read.All"
-                    }
-                ],
-                "update": [
-                    {
-                        "name": "Application.ReadWrite.All"
-                    }
-                ]
-            },
-            "application": {
-                "read": [
-                    {
-                        "name": "Application.Read.All"
-                    }
-                ],
-                "update": [
-                    {
-                        "name": "Application.ReadWrite.All"
-                    }
-                ]
-            }
-        }
-    }
+    "description": "This resource configures an Azure AD Service Principal.",
+    "permissions":    {
+    "graph":  {
+                  "delegated":  {
+                                    "read":  [
+                                                 {
+                                                     "name":  "Application.Read.All"
+                                                 },
+                                                 {
+                                                     "name":  "Directory.Read.All"
+                                                 },
+                                                 {
+                                                     "name":  "Application.ReadWrite.OwnedBy"
+                                                 }
+                                             ],
+                                    "update":  [
+                                                   {
+                                                       "name":  "Application.ReadWrite.OwnedBy"
+                                                   },
+                                                   {
+                                                       "name":  "Directory.ReadWrite.All"
+                                                   },
+                                                   {
+                                                       "name":  "Application.ReadWrite.All"
+                                                   }
+                                               ]
+                                },
+                  "application":  {
+                                      "read":  [
+                                                   {
+                                                       "name":  "Application.Read.All"
+                                                   },
+                                                   {
+                                                       "name":  "Directory.Read.All"
+                                                   },
+                                                   {
+                                                       "name":  "Application.ReadWrite.OwnedBy"
+                                                   }
+                                               ],
+                                      "update":  [
+                                                     {
+                                                         "name":  "Application.ReadWrite.OwnedBy"
+                                                     },
+                                                     {
+                                                         "name":  "Directory.ReadWrite.All"
+                                                     },
+                                                     {
+                                                         "name":  "Application.ReadWrite.All"
+                                                     }
+                                                 ]
+                                  }
+              }
+}
+
 }

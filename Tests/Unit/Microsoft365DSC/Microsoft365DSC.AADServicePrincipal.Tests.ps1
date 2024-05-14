@@ -2,27 +2,30 @@
 param(
 )
 $M365DSCTestFolder = Join-Path -Path $PSScriptRoot `
-    -ChildPath '..\..\Unit' `
-    -Resolve
+                        -ChildPath '..\..\Unit' `
+                        -Resolve
 $CmdletModule = (Join-Path -Path $M365DSCTestFolder `
-        -ChildPath '\Stubs\Microsoft365.psm1' `
-        -Resolve)
+            -ChildPath '\Stubs\Microsoft365.psm1' `
+            -Resolve)
 $GenericStubPath = (Join-Path -Path $M365DSCTestFolder `
-        -ChildPath '\Stubs\Generic.psm1' `
-        -Resolve)
+    -ChildPath '\Stubs\Generic.psm1' `
+    -Resolve)
 Import-Module -Name (Join-Path -Path $M365DSCTestFolder `
         -ChildPath '\UnitTestHelper.psm1' `
         -Resolve)
 
 $Global:DscHelper = New-M365DscUnitTestHelper -StubModule $CmdletModule `
-    -DscResource 'AADServicePrincipal' -GenericStubModule $GenericStubPath
+    -DscResource "AADServicePrincipal" -GenericStubModule $GenericStubPath
 Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
     InModuleScope -ModuleName $Global:DscHelper.ModuleName -ScriptBlock {
         Invoke-Command -ScriptBlock $Global:DscHelper.InitializeScript -NoNewScope
         BeforeAll {
-            $secpasswd = ConvertTo-SecureString (New-Guid | Out-String) -AsPlainText -Force
-            $Credential = New-Object System.Management.Automation.PSCredential ('tenantadmin@contoso.com', $secpasswd)
 
+            $secpasswd = ConvertTo-SecureString (New-Guid | Out-String) -AsPlainText -Force
+            $Credential = New-Object System.Management.Automation.PSCredential ('tenantadmin@mydomain.com', $secpasswd)
+
+            Mock -CommandName Confirm-M365DSCDependencies -MockWith {
+            }
 
             Mock -CommandName Get-PSSession -MockWith {
             }
@@ -33,14 +36,14 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
             Mock -CommandName Update-MgServicePrincipal -MockWith {
             }
 
-            Mock -CommandName Remove-MgServicePrincipal -MockWith {
-            }
-
             Mock -CommandName New-MgServicePrincipal -MockWith {
             }
 
+            Mock -CommandName Remove-MgServicePrincipal -MockWith {
+            }
+
             Mock -CommandName New-M365DSCConnection -MockWith {
-                return 'Credentials'
+                return "Credentials"
             }
 
             # Mock Write-Host to hide output during the tests
@@ -49,220 +52,822 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
             $Script:exportedInstances =$null
             $Script:ExportMode = $false
         }
-
         # Test contexts
-        Context -Name 'The service principal should exist but it does not' -Fixture {
+        Context -Name "The AADServicePrincipal should exist but it DOES NOT" -Fixture {
             BeforeAll {
                 $testParams = @{
-                    AppId                     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    DisplayName               = 'App1'
-                    AlternativeNames          = 'AlternativeName1', 'AlternativeName2'
-                    AccountEnabled            = $true
-                    AppRoleAssignmentRequired = $false
-                    ErrorUrl                  = ''
-                    Homepage                  = 'https://app1.contoso.com'
-                    LogoutUrl                 = 'https://app1.contoso.com/logout'
-                    PublisherName             = 'Contoso'
-                    ReplyURLs                 = 'https://app1.contoso.com'
-                    SamlMetadataURL           = ''
-                    ServicePrincipalNames     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    ServicePrincipalType      = 'Application'
-                    Tags                      = '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    Ensure                    = 'Present'
-                    Credential                = $Credscredential
+                    AccountEnabled = $True
+                    addIns = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphaddIn -Property @{
+                            type = "FakeStringValue"
+                            properties = [CimInstance[]]@(
+                                (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyValue -Property @{
+                                    value = "FakeStringValue"
+                                    key = "FakeStringValue"
+                                } -ClientOnly)
+                            )
+                        } -ClientOnly)
+                    )
+                    alternativeNames = @("FakeStringValue")
+                    appDescription = "FakeStringValue"
+                    appDisplayName = "FakeStringValue"
+                    appId = "FakeStringValue"
+                    applicationTemplateId = "FakeStringValue"
+                    appRoleAssignmentRequired = $True
+                    appRoles = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphappRole -Property @{
+                            description = "FakeStringValue"
+                            value = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            allowedMemberTypes = @("FakeStringValue")
+                            origin = "FakeStringValue"
+                            isEnabled = $True
+                        } -ClientOnly)
+                    )
+                    customSecurityAttributes = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
+                    deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                    description = "FakeStringValue"
+                    disabledByMicrosoftStatus = "FakeStringValue"
+                    displayName = "FakeStringValue"
+                    homepage = "FakeStringValue"
+                    id = "FakeStringValue"
+                    info = (New-CimInstance -ClassName MSFT_MicrosoftGraphinformationalUrl -Property @{
+                        privacyStatementUrl = "FakeStringValue"
+                        termsOfServiceUrl = "FakeStringValue"
+                        logoUrl = "FakeStringValue"
+                        supportUrl = "FakeStringValue"
+                        marketingUrl = "FakeStringValue"
+                    } -ClientOnly)
+                    keyCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyCredential -Property @{
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            displayName = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            type = "FakeStringValue"
+                            usage = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    loginUrl = "FakeStringValue"
+                    logoutUrl = "FakeStringValue"
+                    notes = "FakeStringValue"
+                    notificationEmailAddresses = @("FakeStringValue")
+                    oauth2PermissionScopes = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpermissionScope -Property @{
+                            userConsentDescription = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            adminConsentDescription = "FakeStringValue"
+                            adminConsentDisplayName = "FakeStringValue"
+                            origin = "FakeStringValue"
+                            userConsentDisplayName = "FakeStringValue"
+                            type = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    passwordCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpasswordCredential -Property @{
+                            displayName = "FakeStringValue"
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            hint = "FakeStringValue"
+                            secretText = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        } -ClientOnly)
+                    )
+                    preferredSingleSignOnMode = "FakeStringValue"
+                    preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                    replyUrls = @("FakeStringValue")
+                    resourceSpecificApplicationPermissions = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphresourceSpecificPermission -Property @{
+                            displayName = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            description = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    samlSingleSignOnSettings = (New-CimInstance -ClassName MSFT_MicrosoftGraphsamlSingleSignOnSettings -Property @{
+                        relayState = "FakeStringValue"
+                    } -ClientOnly)
+                    servicePrincipalNames = @("FakeStringValue")
+                    servicePrincipalType = "FakeStringValue"
+                    signInAudience = "FakeStringValue"
+                    tags = @("FakeStringValue")
+                    verifiedPublisher = (New-CimInstance -ClassName MSFT_MicrosoftGraphverifiedPublisher -Property @{
+                        verifiedPublisherId = "FakeStringValue"
+                        addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        displayName = "FakeStringValue"
+                    } -ClientOnly)
+                    Ensure = "Present"
+                    Credential = $Credential;
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
                     return $null
                 }
             }
-
-            It 'Should return values from the get method' {
+            It 'Should return Values from the Get method' {
                 (Get-TargetResource @testParams).Ensure | Should -Be 'Absent'
-                Should -Invoke -CommandName 'Get-MgServicePrincipal' -Exactly 1
             }
-            It 'Should return false from the test method' {
+            It 'Should return false from the Test method' {
                 Test-TargetResource @testParams | Should -Be $false
             }
-            It 'Should create the application from the set method' {
+            It 'Should Create the group from the Set method' {
                 Set-TargetResource @testParams
-                Should -Invoke -CommandName 'New-MgServicePrincipal' -Exactly 1
+                Should -Invoke -CommandName New-MgServicePrincipal -Exactly 1
             }
         }
 
-        Context -Name 'The application exists but it should not' -Fixture {
+        Context -Name "The AADServicePrincipal exists but it SHOULD NOT" -Fixture {
             BeforeAll {
                 $testParams = @{
-                    AppId                     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    DisplayName               = 'App1'
-                    AlternativeNames          = 'AlternativeName1', 'AlternativeName2'
-                    AccountEnabled            = $true
-                    AppRoleAssignmentRequired = $false
-                    ErrorUrl                  = ''
-                    Homepage                  = 'https://app1.contoso.com'
-                    LogoutUrl                 = 'https://app1.contoso.com/logout'
-                    PublisherName             = 'Contoso'
-                    ReplyURLs                 = 'https://app1.contoso.com'
-                    SamlMetadataURL           = ''
-                    ServicePrincipalNames     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    ServicePrincipalType      = 'Application'
-                    Tags                      = '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    Ensure                    = 'Absent'
-                    Credential                = $Credscredential
-                }
-
-                Mock -CommandName New-M365DSCConnection -MockWith {
-                    return 'Credentials'
+                    AccountEnabled = $True
+                    addIns = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphaddIn -Property @{
+                            type = "FakeStringValue"
+                            properties = [CimInstance[]]@(
+                                (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyValue -Property @{
+                                    value = "FakeStringValue"
+                                    key = "FakeStringValue"
+                                } -ClientOnly)
+                            )
+                        } -ClientOnly)
+                    )
+                    alternativeNames = @("FakeStringValue")
+                    appDescription = "FakeStringValue"
+                    appDisplayName = "FakeStringValue"
+                    appId = "FakeStringValue"
+                    applicationTemplateId = "FakeStringValue"
+                    appRoleAssignmentRequired = $True
+                    appRoles = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphappRole -Property @{
+                            description = "FakeStringValue"
+                            value = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            allowedMemberTypes = @("FakeStringValue")
+                            origin = "FakeStringValue"
+                            isEnabled = $True
+                        } -ClientOnly)
+                    )
+                    customSecurityAttributes = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
+                    deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                    description = "FakeStringValue"
+                    disabledByMicrosoftStatus = "FakeStringValue"
+                    displayName = "FakeStringValue"
+                    homepage = "FakeStringValue"
+                    id = "FakeStringValue"
+                    info = (New-CimInstance -ClassName MSFT_MicrosoftGraphinformationalUrl -Property @{
+                        privacyStatementUrl = "FakeStringValue"
+                        termsOfServiceUrl = "FakeStringValue"
+                        logoUrl = "FakeStringValue"
+                        supportUrl = "FakeStringValue"
+                        marketingUrl = "FakeStringValue"
+                    } -ClientOnly)
+                    keyCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyCredential -Property @{
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            displayName = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            type = "FakeStringValue"
+                            usage = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    loginUrl = "FakeStringValue"
+                    logoutUrl = "FakeStringValue"
+                    notes = "FakeStringValue"
+                    notificationEmailAddresses = @("FakeStringValue")
+                    oauth2PermissionScopes = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpermissionScope -Property @{
+                            userConsentDescription = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            adminConsentDescription = "FakeStringValue"
+                            adminConsentDisplayName = "FakeStringValue"
+                            origin = "FakeStringValue"
+                            userConsentDisplayName = "FakeStringValue"
+                            type = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    passwordCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpasswordCredential -Property @{
+                            displayName = "FakeStringValue"
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            hint = "FakeStringValue"
+                            secretText = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        } -ClientOnly)
+                    )
+                    preferredSingleSignOnMode = "FakeStringValue"
+                    preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                    replyUrls = @("FakeStringValue")
+                    resourceSpecificApplicationPermissions = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphresourceSpecificPermission -Property @{
+                            displayName = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            description = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    samlSingleSignOnSettings = (New-CimInstance -ClassName MSFT_MicrosoftGraphsamlSingleSignOnSettings -Property @{
+                        relayState = "FakeStringValue"
+                    } -ClientOnly)
+                    servicePrincipalNames = @("FakeStringValue")
+                    servicePrincipalType = "FakeStringValue"
+                    signInAudience = "FakeStringValue"
+                    tags = @("FakeStringValue")
+                    verifiedPublisher = (New-CimInstance -ClassName MSFT_MicrosoftGraphverifiedPublisher -Property @{
+                        verifiedPublisherId = "FakeStringValue"
+                        addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        displayName = "FakeStringValue"
+                    } -ClientOnly)
+                    Ensure = 'Absent'
+                    Credential = $Credential;
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name DisplayName -Value 'App1'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AdditionalProperties = @{
+                            resourceSpecificApplicationPermissions = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    isEnabled = $True
+                                    description = "FakeStringValue"
+                                }
+                            )
+                            customSecurityAttributes = @{
+                                Name = "CustomSecurityAttributes"
+                                isArray = $False
+                            }
+                            info = @{
+                                privacyStatementUrl = "FakeStringValue"
+                                termsOfServiceUrl = "FakeStringValue"
+                                logoUrl = "FakeStringValue"
+                                supportUrl = "FakeStringValue"
+                                marketingUrl = "FakeStringValue"
+                            }
+                            tags = @("FakeStringValue")
+                            oauth2PermissionScopes = @(
+                                @{
+                                    userConsentDescription = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    isEnabled = $True
+                                    adminConsentDescription = "FakeStringValue"
+                                    adminConsentDisplayName = "FakeStringValue"
+                                    origin = "FakeStringValue"
+                                    userConsentDisplayName = "FakeStringValue"
+                                    type = "FakeStringValue"
+                                }
+                            )
+                            logoutUrl = "FakeStringValue"
+                            loginUrl = "FakeStringValue"
+                            accountEnabled = $True
+                            passwordCredentials = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    hint = "FakeStringValue"
+                                    secretText = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                }
+                            )
+                            homepage = "FakeStringValue"
+                            appId = "FakeStringValue"
+                            appRoles = @(
+                                @{
+                                    description = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    displayName = "FakeStringValue"
+                                    allowedMemberTypes = @("FakeStringValue")
+                                    origin = "FakeStringValue"
+                                    isEnabled = $True
+                                }
+                            )
+                            appDisplayName = "FakeStringValue"
+                            preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                            notes = "FakeStringValue"
+                            alternativeNames = @("FakeStringValue")
+                            servicePrincipalNames = @("FakeStringValue")
+                            replyUrls = @("FakeStringValue")
+                            appDescription = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            verifiedPublisher = @{
+                                verifiedPublisherId = "FakeStringValue"
+                                addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                displayName = "FakeStringValue"
+                            }
+                            signInAudience = "FakeStringValue"
+                            addIns = @(
+                                @{
+                                    type = "FakeStringValue"
+                                    properties = @(
+                                        @{
+                                            value = "FakeStringValue"
+                                            key = "FakeStringValue"
+                                        }
+                                    )
+                                }
+                            )
+                            applicationTemplateId = "FakeStringValue"
+                            description = "FakeStringValue"
+                            appRoleAssignmentRequired = $True
+                            '@odata.type' = "#microsoft.graph.ServicePrincipal"
+                            keyCredentials = @(
+                                @{
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    displayName = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    type = "FakeStringValue"
+                                    usage = "FakeStringValue"
+                                }
+                            )
+                            preferredSingleSignOnMode = "FakeStringValue"
+                            servicePrincipalType = "FakeStringValue"
+                            notificationEmailAddresses = @("FakeStringValue")
+                            disabledByMicrosoftStatus = "FakeStringValue"
+                            samlSingleSignOnSettings = @{
+                                relayState = "FakeStringValue"
+                            }
+                        }
+                        deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        id = "FakeStringValue"
+
+                    }
                 }
             }
 
-            It 'Should return values from the get method' {
+            It 'Should return Values from the Get method' {
                 (Get-TargetResource @testParams).Ensure | Should -Be 'Present'
-                Should -Invoke -CommandName 'Get-MgServicePrincipal' -Exactly 1
             }
 
-            It 'Should return false from the test method' {
+            It 'Should return true from the Test method' {
                 Test-TargetResource @testParams | Should -Be $false
             }
 
-            It 'Should remove the app from the set method' {
+            It 'Should Remove the group from the Set method' {
                 Set-TargetResource @testParams
-                Should -Invoke -CommandName 'Remove-MgServicePrincipal' -Exactly 1
+                Should -Invoke -CommandName Remove-MgServicePrincipal -Exactly 1
             }
         }
-        Context -Name 'The app exists and values are already in the desired state' -Fixture {
+        Context -Name "The AADServicePrincipal Exists and Values are already in the desired state" -Fixture {
             BeforeAll {
                 $testParams = @{
-                    AppId                     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    DisplayName               = 'App1'
-                    AlternativeNames          = 'AlternativeName1', 'AlternativeName2'
-                    AccountEnabled            = $true
-                    AppRoleAssignmentRequired = $false
-                    ErrorUrl                  = ''
-                    Homepage                  = 'https://app1.contoso.com'
-                    LogoutUrl                 = 'https://app1.contoso.com/logout'
-                    PublisherName             = 'Contoso'
-                    ReplyURLs                 = 'https://app1.contoso.com'
-                    SamlMetadataURL           = ''
-                    ServicePrincipalNames     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    ServicePrincipalType      = 'Application'
-                    Tags                      = '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    Ensure                    = 'Present'
-                    Credential                = $Credscredential
-                }
-
-                Mock -CommandName New-M365DSCConnection -MockWith {
-                    return 'Credentials'
+                    AccountEnabled = $True
+                    addIns = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphaddIn -Property @{
+                            type = "FakeStringValue"
+                            properties = [CimInstance[]]@(
+                                (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyValue -Property @{
+                                    value = "FakeStringValue"
+                                    key = "FakeStringValue"
+                                } -ClientOnly)
+                            )
+                        } -ClientOnly)
+                    )
+                    alternativeNames = @("FakeStringValue")
+                    appDescription = "FakeStringValue"
+                    appDisplayName = "FakeStringValue"
+                    appId = "FakeStringValue"
+                    applicationTemplateId = "FakeStringValue"
+                    appRoleAssignmentRequired = $True
+                    appRoles = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphappRole -Property @{
+                            description = "FakeStringValue"
+                            value = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            allowedMemberTypes = @("FakeStringValue")
+                            origin = "FakeStringValue"
+                            isEnabled = $True
+                        } -ClientOnly)
+                    )
+                    customSecurityAttributes = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
+                    deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                    description = "FakeStringValue"
+                    disabledByMicrosoftStatus = "FakeStringValue"
+                    displayName = "FakeStringValue"
+                    homepage = "FakeStringValue"
+                    id = "FakeStringValue"
+                    info = (New-CimInstance -ClassName MSFT_MicrosoftGraphinformationalUrl -Property @{
+                        privacyStatementUrl = "FakeStringValue"
+                        termsOfServiceUrl = "FakeStringValue"
+                        logoUrl = "FakeStringValue"
+                        supportUrl = "FakeStringValue"
+                        marketingUrl = "FakeStringValue"
+                    } -ClientOnly)
+                    keyCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyCredential -Property @{
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            displayName = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            type = "FakeStringValue"
+                            usage = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    loginUrl = "FakeStringValue"
+                    logoutUrl = "FakeStringValue"
+                    notes = "FakeStringValue"
+                    notificationEmailAddresses = @("FakeStringValue")
+                    oauth2PermissionScopes = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpermissionScope -Property @{
+                            userConsentDescription = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            adminConsentDescription = "FakeStringValue"
+                            adminConsentDisplayName = "FakeStringValue"
+                            origin = "FakeStringValue"
+                            userConsentDisplayName = "FakeStringValue"
+                            type = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    passwordCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpasswordCredential -Property @{
+                            displayName = "FakeStringValue"
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            hint = "FakeStringValue"
+                            secretText = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        } -ClientOnly)
+                    )
+                    preferredSingleSignOnMode = "FakeStringValue"
+                    preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                    replyUrls = @("FakeStringValue")
+                    resourceSpecificApplicationPermissions = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphresourceSpecificPermission -Property @{
+                            displayName = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            description = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    samlSingleSignOnSettings = (New-CimInstance -ClassName MSFT_MicrosoftGraphsamlSingleSignOnSettings -Property @{
+                        relayState = "FakeStringValue"
+                    } -ClientOnly)
+                    servicePrincipalNames = @("FakeStringValue")
+                    servicePrincipalType = "FakeStringValue"
+                    signInAudience = "FakeStringValue"
+                    tags = @("FakeStringValue")
+                    verifiedPublisher = (New-CimInstance -ClassName MSFT_MicrosoftGraphverifiedPublisher -Property @{
+                        verifiedPublisherId = "FakeStringValue"
+                        addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        displayName = "FakeStringValue"
+                    } -ClientOnly)
+                    Ensure = 'Present'
+                    Credential = $Credential;
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name DisplayName -Value 'App1'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AdditionalProperties = @{
+                            resourceSpecificApplicationPermissions = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    isEnabled = $True
+                                    description = "FakeStringValue"
+                                }
+                            )
+                            customSecurityAttributes = @{
+                                Name = "CustomSecurityAttributes"
+                                isArray = $False
+                            }
+                            info = @{
+                                privacyStatementUrl = "FakeStringValue"
+                                termsOfServiceUrl = "FakeStringValue"
+                                logoUrl = "FakeStringValue"
+                                supportUrl = "FakeStringValue"
+                                marketingUrl = "FakeStringValue"
+                            }
+                            tags = @("FakeStringValue")
+                            oauth2PermissionScopes = @(
+                                @{
+                                    userConsentDescription = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    isEnabled = $True
+                                    adminConsentDescription = "FakeStringValue"
+                                    adminConsentDisplayName = "FakeStringValue"
+                                    origin = "FakeStringValue"
+                                    userConsentDisplayName = "FakeStringValue"
+                                    type = "FakeStringValue"
+                                }
+                            )
+                            logoutUrl = "FakeStringValue"
+                            loginUrl = "FakeStringValue"
+                            accountEnabled = $True
+                            passwordCredentials = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    hint = "FakeStringValue"
+                                    secretText = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                }
+                            )
+                            homepage = "FakeStringValue"
+                            appId = "FakeStringValue"
+                            appRoles = @(
+                                @{
+                                    description = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    displayName = "FakeStringValue"
+                                    allowedMemberTypes = @("FakeStringValue")
+                                    origin = "FakeStringValue"
+                                    isEnabled = $True
+                                }
+                            )
+                            appDisplayName = "FakeStringValue"
+                            preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                            notes = "FakeStringValue"
+                            alternativeNames = @("FakeStringValue")
+                            servicePrincipalNames = @("FakeStringValue")
+                            replyUrls = @("FakeStringValue")
+                            appDescription = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            verifiedPublisher = @{
+                                verifiedPublisherId = "FakeStringValue"
+                                addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                displayName = "FakeStringValue"
+                            }
+                            signInAudience = "FakeStringValue"
+                            addIns = @(
+                                @{
+                                    type = "FakeStringValue"
+                                    properties = @(
+                                        @{
+                                            value = "FakeStringValue"
+                                            key = "FakeStringValue"
+                                        }
+                                    )
+                                }
+                            )
+                            applicationTemplateId = "FakeStringValue"
+                            description = "FakeStringValue"
+                            appRoleAssignmentRequired = $True
+                            '@odata.type' = "#microsoft.graph.ServicePrincipal"
+                            keyCredentials = @(
+                                @{
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    displayName = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    type = "FakeStringValue"
+                                    usage = "FakeStringValue"
+                                }
+                            )
+                            preferredSingleSignOnMode = "FakeStringValue"
+                            servicePrincipalType = "FakeStringValue"
+                            notificationEmailAddresses = @("FakeStringValue")
+                            disabledByMicrosoftStatus = "FakeStringValue"
+                            samlSingleSignOnSettings = @{
+                                relayState = "FakeStringValue"
+                            }
+                        }
+                        deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        id = "FakeStringValue"
+
+                    }
                 }
             }
 
-            It 'Should return Values from the get method' {
-                Get-TargetResource @testParams
-                Should -Invoke -CommandName 'Get-MgServicePrincipal' -Exactly 1
-            }
 
-            It 'Should return true from the test method' {
+            It 'Should return true from the Test method' {
                 Test-TargetResource @testParams | Should -Be $true
             }
         }
 
-        Context -Name 'Values are not in the desired state' -Fixture {
+        Context -Name "The AADServicePrincipal exists and values are NOT in the desired state" -Fixture {
             BeforeAll {
                 $testParams = @{
-                    AppId                     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    DisplayName               = 'App1'
-                    AlternativeNames          = 'AlternativeName1', 'AlternativeName2', 'AlternativeName3' #drift
-                    AccountEnabled            = $true
-                    AppRoleAssignmentRequired = $false
-                    ErrorUrl                  = ''
-                    Homepage                  = 'https://app1.contoso.com'
-                    LogoutUrl                 = 'https://app1.contoso.com/logout'
-                    PublisherName             = 'Contoso'
-                    ReplyURLs                 = 'https://app1.contoso.com'
-                    SamlMetadataURL           = ''
-                    ServicePrincipalNames     = 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    ServicePrincipalType      = 'Application'
-                    Tags                      = '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    Ensure                    = 'Present'
-                    Credential                = $Credscredential
-                }
-
-                Mock -CommandName New-M365DSCConnection -MockWith {
-                    return 'Credentials'
+                    AccountEnabled = $True
+                    addIns = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphaddIn -Property @{
+                            type = "FakeStringValue"
+                            properties = [CimInstance[]]@(
+                                (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyValue -Property @{
+                                    value = "FakeStringValue"
+                                    key = "FakeStringValue"
+                                } -ClientOnly)
+                            )
+                        } -ClientOnly)
+                    )
+                    alternativeNames = @("FakeStringValue")
+                    appDescription = "FakeStringValue"
+                    appDisplayName = "FakeStringValue"
+                    appId = "FakeStringValue"
+                    applicationTemplateId = "FakeStringValue"
+                    appRoleAssignmentRequired = $True
+                    appRoles = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphappRole -Property @{
+                            description = "FakeStringValue"
+                            value = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            allowedMemberTypes = @("FakeStringValue")
+                            origin = "FakeStringValue"
+                            isEnabled = $True
+                        } -ClientOnly)
+                    )
+                    customSecurityAttributes = (New-CimInstance -ClassName MSFT_MicrosoftGraphcustomSecurityAttributeValue -Property @{
+                        Name = "CustomSecurityAttributes"
+                        isArray = $False
+                        CIMType = "MSFT_MicrosoftGraphcustomSecurityAttributeValue"
+                    } -ClientOnly)
+                    deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                    description = "FakeStringValue"
+                    disabledByMicrosoftStatus = "FakeStringValue"
+                    displayName = "FakeStringValue"
+                    homepage = "FakeStringValue"
+                    id = "FakeStringValue"
+                    info = (New-CimInstance -ClassName MSFT_MicrosoftGraphinformationalUrl -Property @{
+                        privacyStatementUrl = "FakeStringValue"
+                        termsOfServiceUrl = "FakeStringValue"
+                        logoUrl = "FakeStringValue"
+                        supportUrl = "FakeStringValue"
+                        marketingUrl = "FakeStringValue"
+                    } -ClientOnly)
+                    keyCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphkeyCredential -Property @{
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            displayName = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            type = "FakeStringValue"
+                            usage = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    loginUrl = "FakeStringValue"
+                    logoutUrl = "FakeStringValue"
+                    notes = "FakeStringValue"
+                    notificationEmailAddresses = @("FakeStringValue")
+                    oauth2PermissionScopes = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpermissionScope -Property @{
+                            userConsentDescription = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            adminConsentDescription = "FakeStringValue"
+                            adminConsentDisplayName = "FakeStringValue"
+                            origin = "FakeStringValue"
+                            userConsentDisplayName = "FakeStringValue"
+                            type = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    passwordCredentials = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphpasswordCredential -Property @{
+                            displayName = "FakeStringValue"
+                            startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                            hint = "FakeStringValue"
+                            secretText = "FakeStringValue"
+                            endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        } -ClientOnly)
+                    )
+                    preferredSingleSignOnMode = "FakeStringValue"
+                    preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                    replyUrls = @("FakeStringValue")
+                    resourceSpecificApplicationPermissions = [CimInstance[]]@(
+                        (New-CimInstance -ClassName MSFT_MicrosoftGraphresourceSpecificPermission -Property @{
+                            displayName = "FakeStringValue"
+                            value = "FakeStringValue"
+                            isEnabled = $True
+                            description = "FakeStringValue"
+                        } -ClientOnly)
+                    )
+                    samlSingleSignOnSettings = (New-CimInstance -ClassName MSFT_MicrosoftGraphsamlSingleSignOnSettings -Property @{
+                        relayState = "FakeStringValue"
+                    } -ClientOnly)
+                    servicePrincipalNames = @("FakeStringValue")
+                    servicePrincipalType = "FakeStringValue"
+                    signInAudience = "FakeStringValue"
+                    tags = @("FakeStringValue")
+                    verifiedPublisher = (New-CimInstance -ClassName MSFT_MicrosoftGraphverifiedPublisher -Property @{
+                        verifiedPublisherId = "FakeStringValue"
+                        addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        displayName = "FakeStringValue"
+                    } -ClientOnly)
+                    Ensure = 'Present'
+                    Credential = $Credential;
                 }
 
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AdditionalProperties = @{
+                            resourceSpecificApplicationPermissions = @(
+                                @{
+                                    value = "FakeStringValue"
+                                    displayName = "FakeStringValue"
+                                    description = "FakeStringValue"
+                                }
+                            )
+                            tags = @("FakeStringValue")
+                            info = @{
+                                privacyStatementUrl = "FakeStringValue"
+                                termsOfServiceUrl = "FakeStringValue"
+                                logoUrl = "FakeStringValue"
+                                supportUrl = "FakeStringValue"
+                                marketingUrl = "FakeStringValue"
+                            }
+                            customSecurityAttributes = @{
+                                Name = "CustomSecurityAttributes"
+                                isArray = $False
+                            }
+                            logoutUrl = "FakeStringValue"
+                            oauth2PermissionScopes = @(
+                                @{
+                                    value = "FakeStringValue"
+                                    userConsentDescription = "FakeStringValue"
+                                    adminConsentDescription = "FakeStringValue"
+                                    userConsentDisplayName = "FakeStringValue"
+                                    origin = "FakeStringValue"
+                                    adminConsentDisplayName = "FakeStringValue"
+                                    type = "FakeStringValue"
+                                }
+                            )
+                            loginUrl = "FakeStringValue"
+                            preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                            passwordCredentials = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    hint = "FakeStringValue"
+                                    secretText = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                }
+                            )
+                            appRoles = @(
+                                @{
+                                    origin = "FakeStringValue"
+                                    allowedMemberTypes = @("FakeStringValue")
+                                    value = "FakeStringValue"
+                                    description = "FakeStringValue"
+                                    displayName = "FakeStringValue"
+                                }
+                            )
+                            appId = "FakeStringValue"
+                            homepage = "FakeStringValue"
+                            appDisplayName = "FakeStringValue"
+                            alternativeNames = @("FakeStringValue")
+                            notes = "FakeStringValue"
+                            appDescription = "FakeStringValue"
+                            replyUrls = @("FakeStringValue")
+                            verifiedPublisher = @{
+                                verifiedPublisherId = "FakeStringValue"
+                                addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                displayName = "FakeStringValue"
+                            }
+                            applicationTemplateId = "FakeStringValue"
+                            addIns = @(
+                                @{
+                                    type = "FakeStringValue"
+                                    properties = @(
+                                        @{
+                                            value = "FakeStringValue"
+                                            key = "FakeStringValue"
+                                        }
+                                    )
+                                }
+                            )
+                            signInAudience = "FakeStringValue"
+                            description = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            preferredSingleSignOnMode = "FakeStringValue"
+                            keyCredentials = @(
+                                @{
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    displayName = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    type = "FakeStringValue"
+                                    usage = "FakeStringValue"
+                                }
+                            )
+                            servicePrincipalNames = @("FakeStringValue")
+                            disabledByMicrosoftStatus = "FakeStringValue"
+                            notificationEmailAddresses = @("FakeStringValue")
+                            servicePrincipalType = "FakeStringValue"
+                            samlSingleSignOnSettings = @{
+                                relayState = "FakeStringValue"
+                            }
+                        }
+                        deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        id = "FakeStringValue"
+                    }
                 }
             }
 
-            It 'Should return values from the get method' {
-                Get-TargetResource @testParams
-                Should -Invoke -CommandName 'Get-MgServicePrincipal' -Exactly 1
+            It 'Should return Values from the Get method' {
+                (Get-TargetResource @testParams).Ensure | Should -Be 'Present'
             }
 
-            It 'Should return false from the test method' {
+            It 'Should return false from the Test method' {
                 Test-TargetResource @testParams | Should -Be $false
             }
 
-            It 'Should call the set method' {
+            It 'Should call the Set method' {
                 Set-TargetResource @testParams
-                Should -Invoke -CommandName 'Update-MgServicePrincipal' -Exactly 1
+                Should -Invoke -CommandName Update-MgServicePrincipal -Exactly 1
             }
         }
 
@@ -274,32 +879,118 @@ Describe -Name $Global:DscHelper.DescribeHeader -Fixture {
                     Credential = $Credential
                 }
 
-                Mock -CommandName New-M365DSCConnection -MockWith {
-                    return 'Credentials'
-                }
-
                 Mock -CommandName Get-MgServicePrincipal -MockWith {
-                    $AADSP = New-Object PSCustomObject
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppId -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Id -Value '5dcb2237-c61b-4258-9c85-eae2aaeba9d6'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name DisplayName -Value 'App1'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AlternativeNames -Value 'AlternativeName1', 'AlternativeName2'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AccountEnabled -Value $true
-                    $AADSP | Add-Member -MemberType NoteProperty -Name AppRoleAssignmentRequired -Value $false
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ErrorUrl -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Homepage -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name LogoutUrl -Value 'https://app1.contoso.com/logout'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name PublisherName -Value 'Contoso'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ReplyURLs -Value 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name SamlMetadataURL -Value ''
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalNames -Value 'b4f08c68-7276-4cb8-b9ae-e75fca5ff834', 'https://app1.contoso.com'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name ServicePrincipalType -Value 'Application'
-                    $AADSP | Add-Member -MemberType NoteProperty -Name Tags -Value '{WindowsAzureActiveDirectoryIntegratedApp}'
-                    return $AADSP
+                    return @{
+                        AdditionalProperties = @{
+                            resourceSpecificApplicationPermissions = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    isEnabled = $True
+                                    description = "FakeStringValue"
+                                }
+                            )
+                            customSecurityAttributes = @{
+                                Name = "CustomSecurityAttributes"
+                                isArray = $False
+                            }
+                            info = @{
+                                privacyStatementUrl = "FakeStringValue"
+                                termsOfServiceUrl = "FakeStringValue"
+                                logoUrl = "FakeStringValue"
+                                supportUrl = "FakeStringValue"
+                                marketingUrl = "FakeStringValue"
+                            }
+                            tags = @("FakeStringValue")
+                            oauth2PermissionScopes = @(
+                                @{
+                                    userConsentDescription = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    isEnabled = $True
+                                    adminConsentDescription = "FakeStringValue"
+                                    adminConsentDisplayName = "FakeStringValue"
+                                    origin = "FakeStringValue"
+                                    userConsentDisplayName = "FakeStringValue"
+                                    type = "FakeStringValue"
+                                }
+                            )
+                            logoutUrl = "FakeStringValue"
+                            loginUrl = "FakeStringValue"
+                            accountEnabled = $True
+                            passwordCredentials = @(
+                                @{
+                                    displayName = "FakeStringValue"
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    hint = "FakeStringValue"
+                                    secretText = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                }
+                            )
+                            homepage = "FakeStringValue"
+                            appId = "FakeStringValue"
+                            appRoles = @(
+                                @{
+                                    description = "FakeStringValue"
+                                    value = "FakeStringValue"
+                                    displayName = "FakeStringValue"
+                                    allowedMemberTypes = @("FakeStringValue")
+                                    origin = "FakeStringValue"
+                                    isEnabled = $True
+                                }
+                            )
+                            appDisplayName = "FakeStringValue"
+                            preferredTokenSigningKeyThumbprint = "FakeStringValue"
+                            notes = "FakeStringValue"
+                            alternativeNames = @("FakeStringValue")
+                            servicePrincipalNames = @("FakeStringValue")
+                            replyUrls = @("FakeStringValue")
+                            appDescription = "FakeStringValue"
+                            displayName = "FakeStringValue"
+                            verifiedPublisher = @{
+                                verifiedPublisherId = "FakeStringValue"
+                                addedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                displayName = "FakeStringValue"
+                            }
+                            signInAudience = "FakeStringValue"
+                            addIns = @(
+                                @{
+                                    type = "FakeStringValue"
+                                    properties = @(
+                                        @{
+                                            value = "FakeStringValue"
+                                            key = "FakeStringValue"
+                                        }
+                                    )
+                                }
+                            )
+                            applicationTemplateId = "FakeStringValue"
+                            description = "FakeStringValue"
+                            appRoleAssignmentRequired = $True
+                            '@odata.type' = "#microsoft.graph.ServicePrincipal"
+                            keyCredentials = @(
+                                @{
+                                    startDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    displayName = "FakeStringValue"
+                                    endDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                                    type = "FakeStringValue"
+                                    usage = "FakeStringValue"
+                                }
+                            )
+                            preferredSingleSignOnMode = "FakeStringValue"
+                            servicePrincipalType = "FakeStringValue"
+                            notificationEmailAddresses = @("FakeStringValue")
+                            disabledByMicrosoftStatus = "FakeStringValue"
+                            samlSingleSignOnSettings = @{
+                                relayState = "FakeStringValue"
+                            }
+                        }
+                        deletedDateTime = "2023-01-01T00:00:00.0000000+00:00"
+                        id = "FakeStringValue"
+
+                    }
                 }
             }
-
-            It 'Should reverse engineer resource from the export method' {
+            It 'Should Reverse Engineer resource from the Export method' {
                 $result = Export-TargetResource @testParams
                 $result | Should -Not -BeNullOrEmpty
             }

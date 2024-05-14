@@ -1,5 +1,6 @@
+
 # AADServicePrincipal
 
 ## Description
 
-This resource configures an Azure Active Directory ServicePrincipal.
+Azure AD Service Principal
